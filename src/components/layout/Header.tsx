@@ -1,10 +1,14 @@
 import React from 'react';
 import { Menu, Bell, Search } from 'lucide-react';
+import { useMobileMenu } from '../../contexts/MobileMenuContext';
 const Header = () => {
+  const {
+    toggleMenu
+  } = useMobileMenu();
   return <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center md:hidden">
-          <button className="p-1 rounded-md hover:bg-gray-100">
+          <button onClick={toggleMenu} className="p-1 rounded-md hover:bg-gray-100" aria-label="Toggle mobile menu">
             <Menu size={24} />
           </button>
         </div>
