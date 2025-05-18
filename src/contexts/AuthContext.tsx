@@ -45,10 +45,9 @@ export function AuthProvider({
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    // Check for stored auth token on mount
     const checkAuth = async () => {
       try {
-        setIsCheckingAuth(true)
+        setIsCheckingAuth(true); // Start checking auth
         setIsLoading(true);
         const storedToken = localStorage.getItem('authToken');
         
@@ -56,6 +55,7 @@ export function AuthProvider({
           // No token found, mark auth check as complete and exit
           setAuthCheckComplete(true);
           setIsLoading(false);
+          setIsCheckingAuth(false); // FIXED: Set to false when check is complete
           return;
         }
         
@@ -68,7 +68,7 @@ export function AuthProvider({
           const response = await axiosInstance.get('/api/auth/me');
           setUser(response.data.admin);
           setIsAuthenticated(true);
-        } catch (err: any) {
+        } catch (err) {
           console.error('Auth validation error:', err.response?.data || err.message);
           setError('Session expired. Please login again.');
           
@@ -81,7 +81,7 @@ export function AuthProvider({
       } catch (err) {
         console.error('Auth check error:', err);
       } finally {
-        setIsCheckingAuth(true)
+        setIsCheckingAuth(false); // FIXED: Set to false when check is complete
         setAuthCheckComplete(true);
         setIsLoading(false);
       }
