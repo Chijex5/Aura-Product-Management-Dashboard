@@ -1,38 +1,98 @@
 import React from 'react';
-import { Menu, Bell, Search } from 'lucide-react';
+import { Menu, Bell, Settings, Search, ChevronDown, User } from 'lucide-react';
 import { useMobileMenu } from '../../contexts/MobileMenuContext';
+import { useAuth } from '@/contexts/AuthContext';
+
 const Header = () => {
-  const {
-    toggleMenu
-  } = useMobileMenu();
-  return <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center md:hidden">
-          <button onClick={toggleMenu} className="p-1 rounded-md hover:bg-gray-100" aria-label="Toggle mobile menu">
+  const { toggleMenu, setSidebarOpen, sidebarOpen } = useMobileMenu();
+  const { user, isLoading } = useAuth();
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const renderUserProfile = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center animate-pulse">
+          <div className="h-8 w-8 rounded-full bg-gray-300"></div>
+          <ChevronDown size={16} className="ml-1 text-gray-500" />
+        </div>
+      );
+    }
+    
+    if (!user) {
+      return (
+        <div className="flex items-center">
+          <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+            <User size={16} className="text-gray-500" />
+          </div>
+          <ChevronDown size={16} className="ml-1 text-gray-500" />
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex items-center cursor-pointer">
+        {user.avatar ? (
+          <img 
+            className="h-8 w-8 rounded-full object-cover" 
+            src={user.avatar} 
+            alt={user.name || 'User avatar'} 
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://via.placeholder.com/32';
+            }}
+          />
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+            {user.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
+          </div>
+        )}
+        <ChevronDown size={16} className="ml-1 text-gray-500" />
+      </div>
+    );
+  };
+
+  return (
+    <header className="bg-white shadow-sm h-16 flex items-center justify-between px-4 md:px-6">
+      <div className="flex items-center">
+        {!sidebarOpen && (
+          <button 
+            onClick={toggleSidebar} 
+            className="mr-4 text-gray-500 hover:text-gray-700"
+            aria-label="Toggle sidebar"
+          >
             <Menu size={24} />
           </button>
-        </div>
-        <div className="flex-1 max-w-md mx-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400" />
-            </div>
-            <input type="text" placeholder="Search..." className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
+        )}
+        
+        <div className="md:w-64 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={16} className="text-gray-400" />
           </div>
-        </div>
-        <div className="flex items-center">
-          <button className="p-1 mr-4 rounded-full hover:bg-gray-100 relative">
-            <Bell size={20} />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-          </button>
-          <div className="flex items-center">
-            <img className="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User avatar" />
-            <span className="ml-2 font-medium text-sm hidden md:block">
-              Admin User
-            </span>
-          </div>
+          <input 
+            type="text" 
+            placeholder="Search..." 
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
+          />
         </div>
       </div>
-    </header>;
+      
+      <div className="flex items-center space-x-4">
+        <button className="p-1 rounded-full text-gray-400 hover:bg-gray-100 relative">
+          <Bell size={20} />
+          <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-1 ring-white"></span>
+        </button>
+        
+        <button className="p-1 rounded-full text-gray-400 hover:bg-gray-100">
+          <Settings size={20} />
+        </button>
+        
+        {renderUserProfile()}
+      </div>
+    </header>
+  );
 };
+
 export default Header;

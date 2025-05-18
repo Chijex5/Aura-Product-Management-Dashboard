@@ -1,257 +1,530 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useStore } from '../stores/productStore';
+import { Trash2, Edit, Plus, Search, Star, StarOff, X } from 'lucide-react';
+import ProductForm from '@/components/modals/ProductForm';
+import CollectionForm from '@/components/modals/CollectionForm';
+import { toast } from 'react-hot-toast';
+
 const Products = () => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const products = [{
-    id: 1,
-    name: 'Midnight Orchid',
-    price: 89.99,
-    stock: 24,
-    category: 'Floral',
-    image: 'https://images.unsplash.com/photo-1592914610354-fd354de21e5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }, {
-    id: 2,
-    name: 'Ocean Breeze',
-    price: 75.5,
-    stock: 18,
-    category: 'Fresh',
-    image: 'https://images.unsplash.com/photo-1547887538-6b3c3c4560d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }, {
-    id: 3,
-    name: 'Amber Essence',
-    price: 120.0,
-    stock: 12,
-    category: 'Oriental',
-    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }, {
-    id: 4,
-    name: 'Citrus Sunrise',
-    price: 65.99,
-    stock: 32,
-    category: 'Citrus',
-    image: 'https://images.unsplash.com/photo-1608528577891-eb055944f2e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }, {
-    id: 5,
-    name: 'Velvet Rose',
-    price: 95.0,
-    stock: 8,
-    category: 'Floral',
-    image: 'https://images.unsplash.com/photo-1557682250-42c28f3be1c3?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }, {
-    id: 6,
-    name: 'Woody Musk',
-    price: 110.0,
-    stock: 15,
-    category: 'Woody',
-    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }, {
-    id: 7,
-    name: 'Lavender Dreams',
-    price: 85.5,
-    stock: 20,
-    category: 'Floral',
-    image: 'https://images.unsplash.com/photo-1567922045116-2a00fae2ed03?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }, {
-    id: 8,
-    name: 'Spice Route',
-    price: 125.0,
-    stock: 10,
-    category: 'Spicy',
-    image: 'https://images.unsplash.com/photo-1572635196184-84e35138cf62?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80'
-  }];
-  return <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Products</h1>
-          <p className="text-gray-500">Manage your perfume inventory</p>
-        </div>
-        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
-          <Plus size={18} className="mr-1" />
-          Add Product
-        </button>
-      </div>
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400" />
-            </div>
-            <input type="text" placeholder="Search products..." className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
-          </div>
-          <div className="flex gap-2">
-            <select className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-              <option value="">All Categories</option>
-              <option value="floral">Floral</option>
-              <option value="fresh">Fresh</option>
-              <option value="oriental">Oriental</option>
-              <option value="citrus">Citrus</option>
-              <option value="woody">Woody</option>
-              <option value="spicy">Spicy</option>
-            </select>
-            <button className="border border-gray-300 rounded-md p-2 hover:bg-gray-50">
-              <Filter size={18} className="text-gray-600" />
-            </button>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stock
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {products.map(product => <tr key={product.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0">
-                        <img className="h-10 w-10 rounded-md object-cover" src={product.image} alt={product.name} />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {product.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          SKU: PRF-{product.id.toString().padStart(4, '0')}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${product.price.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.stock > 20 ? 'bg-green-100 text-green-800' : product.stock > 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                      {product.stock} in stock
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 mr-4">
-                      <Edit size={16} />
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>)}
-            </tbody>
-          </table>
-        </div>
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
-            Showing <span className="font-medium">1</span> to{' '}
-            <span className="font-medium">8</span> of{' '}
-            <span className="font-medium">8</span> products
-          </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
-              Previous
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
-      {showAddModal && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Add New Product</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-500">
-                &times;
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product Name
-                  </label>
-                  <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Select Category</option>
-                    <option value="floral">Floral</option>
-                    <option value="fresh">Fresh</option>
-                    <option value="oriental">Oriental</option>
-                    <option value="citrus">Citrus</option>
-                    <option value="woody">Woody</option>
-                    <option value="spicy">Spicy</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price ($)
-                  </label>
-                  <input type="number" step="0.01" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock Quantity
-                  </label>
-                  <input type="number" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product Image
-                  </label>
-                  <div className="border border-dashed border-gray-300 rounded-md p-6 text-center">
-                    <div className="flex flex-col items-center">
-                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <div className="mt-2 text-sm text-gray-600">
-                        <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
-                          <span>Upload a file</span>
-                          <input id="file-upload" name="file-upload" type="file" className="sr-only" />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG, GIF up to 10MB
-                      </p>
-                    </div>
-                  </div>
-                </div>
+  const { 
+    products, 
+    collections, 
+    addCollection, 
+    deleteCollection, 
+    updateCollection, 
+    isLoading, 
+    error, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct, 
+    generateImageLink 
+  } = useStore();
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState('products');
+  
+  // Product states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  
+  // Collection states
+  const [isAddingCollection, setIsAddingCollection] = useState(false);
+  const [isEditingCollection, setIsEditingCollection] = useState(false);
+  const [currentCollection, setCurrentCollection] = useState(null);
+  const [collectionSearchTerm, setCollectionSearchTerm] = useState('');
+  
+  const initialFormData = {
+    name: '',
+    description: '',
+    price: 0,
+    stock: 0,
+    gender: 'Unisex',
+    size: '50ml',
+    brand: '',
+    image: '',
+    imageFile: null
+  };
+  
+  const [formData, setFormData] = useState(initialFormData);
+  
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+  
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'price' || name === 'stock' ? parseFloat(value) : value
+    }));
+  };
+  
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData(prev => ({
+        ...prev,
+        imageFile: e.target.files ? e.target.files[0] : null
+      }));
+    }
+  };
+  
+  const handleGenerateImageLink = async () => {
+    if (formData.imageFile) {
+      setUploadingImage(true);
+      try {
+        const imageUrl = await generateImageLink(formData.imageFile);
+        setFormData(prev => ({
+          ...prev,
+          image: imageUrl
+        }));
+        toast.success("Image uploaded successfully!");
+      } catch (error) {
+        toast.error("Failed to upload image");
+      } finally {
+        setUploadingImage(false);
+      }
+    } else {
+      toast.error("Please select an image first");
+    }
+  };
+  
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setIsAddingProduct(false);
+    setIsEditingProduct(false);
+    setCurrentProduct(null);
+  };
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.brand || !formData.image) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    // Auto-generate a simple description if none provided
+    const description = formData.description || 
+      `A premium ${formData.gender.toLowerCase() === 'unisex' ? 'unisex' : 
+        formData.gender.toLowerCase() === 'female' ? 'feminine' : 'masculine'} 
+        fragrance by ${formData.brand}. Available in ${formData.size}.`;
+    
+    const productData = {
+      name: formData.name,
+      description,
+      price: formData.price,
+      stock: formData.stock,
+      gender: formData.gender,
+      size: formData.size,
+      brand: formData.brand,
+      image: formData.image
+    };
+    
+    if (isEditingProduct && currentProduct !== null) {
+      updateProduct(currentProduct, productData);
+      toast.success("Product updated successfully!");
+    } else {
+      addProduct(productData);
+      toast.success("Product added successfully!");
+    }
+    
+    resetForm();
+  };
+  
+  const handleEditProduct = (id) => {
+    const product = products.find(p => p.id === id);
+    if (product) {
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        gender: product.gender,
+        size: product.size,
+        brand: product.brand,
+        image: product.image,
+        imageFile: null
+      });
+      setCurrentProduct(id);
+      setIsEditingProduct(true);
+      setIsAddingProduct(true);
+    }
+  };
+  
+  const handleDeleteProduct = (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      deleteProduct(id);
+      toast.success("Product deleted successfully!");
+    }
+  };
+  
+  const handleCollectionSubmit = async (collectionData) => {
+    if (isEditingCollection && currentCollection) {
+      await updateCollection(currentCollection, collectionData);
+      toast.success("Collection updated successfully!");
+    } else {
+      await addCollection(collectionData);
+      toast.success("Collection created successfully!");
+    }
+    
+    // Close the collection form
+    resetCollectionForm();
+  };
+  
+  const resetCollectionForm = () => {
+    setIsAddingCollection(false);
+    setIsEditingCollection(false);
+    setCurrentCollection(null);
+  };
+  
+  const handleEditCollection = (id) => {
+    const collection = collections.find(c => c.id === id);
+    if (collection) {
+      setCurrentCollection(collection.id);
+      setIsEditingCollection(true);
+      setIsAddingCollection(true);
+    }
+  };
+  
+  const handleDeleteCollection = (id) => {
+    if (window.confirm('Are you sure you want to delete this collection?')) {
+      deleteCollection(id);
+      toast.success("Collection deleted successfully!");
+    }
+  };
+  
+  const handleToggleFeature = (id, featured) => {
+    updateCollection(id, { featured: !featured });
+    toast.success(`Collection ${featured ? 'removed from' : 'added to'} featured successfully!`);
+  };
+  
+  const filteredProducts = products.filter(product => 
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const filteredCollections = collections.filter(collection => 
+    collection.name.toLowerCase().includes(collectionSearchTerm.toLowerCase())
+  );
+  
+  // Product cards grid component
+  const ProductCards = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {filteredProducts.length > 0 ? (
+        filteredProducts.map(product => (
+          <div key={product.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all overflow-hidden border border-purple-100">
+            <div className="relative h-48 overflow-hidden">
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = '/images/placeholder-perfume.jpg';
+                }}
+              />
+              <div className="absolute top-2 right-2 flex space-x-2">
+                <button 
+                  onClick={() => handleEditProduct(product.id)}
+                  className="p-2 bg-white/90 hover:bg-purple-100 rounded-full shadow-sm transition-colors"
+                >
+                  <Edit size={16} className="text-purple-700" />
+                </button>
+                <button 
+                  onClick={() => handleDeleteProduct(product.id)}
+                  className="p-2 bg-white/90 hover:bg-red-100 rounded-full shadow-sm transition-colors"
+                >
+                  <Trash2 size={16} className="text-red-600" />
+                </button>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium">
-                Save Product
-              </button>
+            <div className="p-4">
+              <div className="flex justify-between items-start">
+                <h3 className="text-lg font-medium text-gray-900 truncate">{product.name}</h3>
+                <div className="text-lg font-semibold text-purple-700">₦{product.price}</div>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">{product.brand}</p>
+              <div className="mt-2 flex justify-between items-center">
+                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">{product.gender}</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{product.size}</span>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  product.stock > 10 ? "bg-green-100 text-green-800" : 
+                  product.stock > 0 ? "bg-yellow-100 text-yellow-800" : 
+                  "bg-red-100 text-red-800"
+                }`}>
+                  {product.stock > 0 ? `Stock: ${product.stock}` : "Out of Stock"}
+                </span>
+              </div>
             </div>
           </div>
-        </div>}
-    </div>;
+        ))
+      ) : (
+        <div className="col-span-full flex justify-center items-center h-48">
+          <p className="text-gray-500 text-lg">No products found matching your search.</p>
+        </div>
+      )}
+    </div>
+  );
+  
+  // Collection cards grid component
+  const CollectionCards = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+      {filteredCollections.length > 0 ? (
+        filteredCollections.map(collection => (
+          <div key={collection.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all overflow-hidden border border-purple-100">
+            <div className="relative h-48 overflow-hidden">
+              <img 
+                src={collection.image} 
+                alt={collection.name} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = '/images/placeholder-collection.jpg';
+                }}
+              />
+              <div className="absolute top-2 left-2 flex space-x-2">
+                <button
+                  onClick={() => handleToggleFeature(collection.id, collection.featured)}
+                  className="p-2 bg-white/90 hover:bg-yellow-100 rounded-full shadow-sm transition-colors"
+                  title={collection.featured ? "Remove from featured" : "Add to featured"}
+                >
+                  {collection.featured ? (
+                    <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                  ) : (
+                    <StarOff size={16} className="text-gray-500" />
+                  )}
+                </button>
+              </div>
+              <div className="absolute top-2 right-2 flex space-x-2">
+                <button 
+                  onClick={() => handleEditCollection(collection.id)}
+                  className="p-2 bg-white/90 hover:bg-purple-100 rounded-full shadow-sm transition-colors"
+                >
+                  <Edit size={16} className="text-purple-700" />
+                </button>
+                <button 
+                  onClick={() => handleDeleteCollection(collection.id)}
+                  className="p-2 bg-white/90 hover:bg-red-100 rounded-full shadow-sm transition-colors"
+                >
+                  <Trash2 size={16} className="text-red-600" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between items-start">
+                <h3 className="text-lg font-medium text-gray-900 truncate">{collection.name}</h3>
+                <div className="text-sm font-medium text-purple-700">{collection.products.length} Products</div>
+              </div>
+              {collection.description && (
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{collection.description}</p>
+              )}
+              <div className="mt-3 flex overflow-x-auto gap-1 pb-1">
+                {collection.products.slice(0, 5).map(product => (
+                  <div key={product.id} className="w-8 h-8 flex-shrink-0 rounded-full overflow-hidden border border-gray-200">
+                    <img 
+                      src={product.image} 
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = '/images/placeholder-perfume.jpg';
+                      }}
+                    />
+                  </div>
+                ))}
+                {collection.products.length > 5 && (
+                  <div className="w-8 h-8 flex-shrink-0 rounded-full bg-purple-100 flex items-center justify-center text-xs font-medium text-purple-700">
+                    +{collection.products.length - 5}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="col-span-full flex justify-center items-center h-48">
+          <p className="text-gray-500 text-lg">No collections found matching your search.</p>
+        </div>
+      )}
+    </div>
+  );
+  
+  // Modal background
+  const Modal = ({ children, onClose }) => (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/50 flex justify-center items-center p-4">
+      <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-end p-4">
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-800 transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="px-6 pb-6">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white pb-16">
+      {/* Decorative gradient elements */}
+      <div className="absolute top-1/4 left-10 w-20 h-20 rounded-full bg-[#f6e6fa]/30 blur-xl"></div>
+      <div className="absolute bottom-1/3 right-20 w-32 h-32 rounded-full bg-[#9c6da5]/20 blur-xl"></div>
+      <div className="absolute top-2/3 left-1/4 w-16 h-16 rounded-full bg-[#f6e6fa]/40 blur-lg"></div>
+      
+      <div className="relative px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-12">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Product Management</h1>
+        
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 mb-8">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`px-4 py-2 font-medium text-sm transition-colors ${
+              activeTab === 'products'
+                ? 'text-purple-700 border-b-2 border-purple-500'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Products
+          </button>
+          <button
+            onClick={() => setActiveTab('collections')}
+            className={`px-4 py-2 font-medium text-sm transition-colors ${
+              activeTab === 'collections'
+                ? 'text-purple-700 border-b-2 border-purple-500'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Collections
+          </button>
+        </div>
+        
+        {/* Products Tab Content */}
+        {activeTab === 'products' && !isAddingProduct && (
+          <div>
+            {/* Add Product Button */}
+            <div className="flex justify-between items-center mb-6">
+              <button
+                onClick={() => setIsAddingProduct(true)}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                <Plus size={18} />
+                Add Product
+              </button>
+              
+              {/* Search Products */}
+              <div className="relative w-64">
+                <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+            
+            {/* Product Cards */}
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+              </div>
+            ) : (
+              <ProductCards />
+            )}
+          </div>
+        )}
+        
+        {/* Collections Tab Content */}
+        {activeTab === 'collections' && !isAddingCollection && (
+          <div>
+            {/* Add Collection Button */}
+            <div className="flex justify-between items-center mb-6">
+              <button
+                onClick={() => setIsAddingCollection(true)}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                <Plus size={18} />
+                Add Collection
+              </button>
+              
+              {/* Search Collections */}
+              <div className="relative w-64">
+                <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search collections..."
+                  value={collectionSearchTerm}
+                  onChange={(e) => setCollectionSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+            
+            {/* Collection Cards */}
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+              </div>
+            ) : (
+              <CollectionCards />
+            )}
+          </div>
+        )}
+        
+        {/* Product Form Modal */}
+        {isAddingProduct && (
+          <Modal onClose={resetForm}>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+              {isEditingProduct ? 'Edit Product' : 'Add New Product'}
+            </h2>
+            <ProductForm
+              isAddingProduct={isAddingProduct}
+              setIsAddingProduct={setIsAddingProduct}
+              formData={formData}
+              setFormData={setFormData}
+              isEditingProduct={isEditingProduct}
+              isLoading={isLoading}
+              uploadingImage={uploadingImage}
+              handleInputChange={handleInputChange}
+              handleImageChange={handleImageChange}
+              handleGenerateImageLink={handleGenerateImageLink}
+              resetForm={resetForm}
+              handleSubmit={handleSubmit}
+            />
+          </Modal>
+        )}
+        
+        {/* Collection Form Modal */}
+        {isAddingCollection && (
+          <Modal onClose={resetCollectionForm}>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+              {isEditingCollection ? 'Edit Collection' : 'Add New Collection'}
+            </h2>
+            <CollectionForm 
+              isEditingCollection={isEditingCollection}
+              currentCollection={
+                isEditingCollection 
+                  ? collections.find(c => c.id === currentCollection) 
+                  : null
+              }
+              products={products}
+              isLoading={isLoading}
+              onSubmit={handleCollectionSubmit}
+              onCancel={resetCollectionForm}
+              setIsAddingCollection={setIsAddingCollection}
+            />
+          </Modal>
+        )}
+      </div>
+    </div>
+  );
 };
+
 export default Products;

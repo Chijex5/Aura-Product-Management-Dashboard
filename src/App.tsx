@@ -10,25 +10,62 @@ import Admins from './pages/Admins';
 import Statistics from './pages/Statistics';
 import Resources from './pages/Resources';
 import Layout from './components/layout/Layout';
+
 export function App() {
-  return <Router>
+  return (
+    <Router>
       <AuthProvider>
         <MobileMenuProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<ProtectedRoute>
-                  <Layout>
-                    <Routes>
-                      <Route index element={<Dashboard />} />
-                      <Route path="products" element={<Products />} />
-                      <Route path="admins" element={<Admins />} />
-                      <Route path="statistics" element={<Statistics />} />
-                      <Route path="resources" element={<Resources />} />
-                    </Routes>
-                  </Layout>
-                </ProtectedRoute>} />
+            
+            {/* Dashboard route */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Products route */}
+            <Route path="/products" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Products />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Admins route */}
+            <Route path="/admins" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Admins />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Statistics route */}
+            <Route path="/statistics" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Statistics />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Resources route */}
+            <Route path="/resources" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Resources />
+                </Layout>
+              </ProtectedRoute>
+            } />
           </Routes>
         </MobileMenuProvider>
       </AuthProvider>
-    </Router>;
+    </Router>
+  );
 }
