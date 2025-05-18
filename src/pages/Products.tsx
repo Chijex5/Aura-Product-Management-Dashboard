@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../stores/productStore';
 import { Trash2, Edit, Plus, Search, Star, StarOff, X } from 'lucide-react';
-import ProductForm from '@/components/modals/ProductForm';
+import ProductForm from '@/components/modals/Productform';
 import CollectionForm from '@/components/modals/CollectionForm';
 import { toast } from 'react-hot-toast';
 
