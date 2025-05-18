@@ -19,11 +19,8 @@ jobs:
       # Create .env file from GitHub secrets
       - name: Create .env file
         run: |
-          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
-          echo "VITE_API_KEY=${{ secrets.VITE_API_KEY }}" >> .env
-          # Add any other environment variables you need
-          # echo "VITE_ANOTHER_VAR=${{ secrets.VITE_ANOTHER_VAR }}" >> .env
-      
+          echo "VITE_APP_API_URL=${{ secrets.VITE_APP_API_URL }}" >> .env
+          
       - name: Install dependencies
         run: npm ci
       
