@@ -357,7 +357,7 @@ const Admins = () => {
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
         >
           <Plus size={18} className="mr-1" />
-          Add Admin
+          <span className = "hidden md:block">Add Admin</span>
         </button>
       </div>
       
