@@ -60,12 +60,20 @@ const Header = () => {
         {!sidebarOpen && (
           <button 
             onClick={toggleSidebar} 
-            className="mr-4 text-gray-500 hover:text-gray-700"
+            className="mr-4 hidden md:block text-gray-500 hover:text-gray-700"
             aria-label="Toggle sidebar"
           >
             <Menu size={24} />
           </button>
+          
         )}
+        <button 
+            onClick={toggleMenu} 
+            className="mr-4 md:hidden text-gray-500 hover:text-gray-700"
+            aria-label="Toggle sidebar"
+          >
+            <Menu size={24} />
+          </button>
         
         <div className="md:w-64 relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
