@@ -14,16 +14,20 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User;
+  user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: any) => Promise<void>;
+  verify: (verifyToken: string, password:string) => Promise<void>;
   logout: () => void;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   isLoading: boolean;
+  isNotVerified: boolean;
+  verificationToken: string;
+  
   error: string | null;
 }
 
@@ -42,6 +46,10 @@ export function AuthProvider({
     isCheckingAuth,
     setIsCheckingAuth,
     isLoading,
+    isNotVerified,
+    setIsNotVerified,
+    setVerificationToken,
+    verificationToken,
     error,
     setUser,
     setToken,
@@ -77,7 +85,7 @@ export function AuthProvider({
           const response = await axiosInstance.get('/api/auth/me');
           setUser(response.data.admin);
           setIsAuthenticated(true);
-        } catch (err) {
+        } catch (err: any) {
           console.error('Auth validation error:', err.response?.data || err.message);
           setError('Session expired. Please login again.');
           
@@ -103,13 +111,18 @@ export function AuthProvider({
     try {
       setIsLoading(true);
       setError(null);
-      
-      // Real API call for login
+      setIsNotVerified(false);
       const response = await axiosInstance.post('/admin/login', {
         email,
         password
       });
       
+      if(response.status == 201) {
+        setError(response.data.error);
+        setIsNotVerified(true);
+        setVerificationToken(response.data.token);
+        return;
+      }
       const token = response.data.access_token;
       const userData = response.data.admin; // Make sure this matches backend response key
       
@@ -125,6 +138,38 @@ export function AuthProvider({
     } catch (err: any) {
       console.error('Login error:', err.response?.data || err.message);
       const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Login failed. Please try again.';
+      setError(errorMessage);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verify = async (verifyToken: string, password: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setIsNotVerified(false);
+      const response = await axiosInstance.post('/admin/verify', {
+        "token" : verifyToken,
+        "password" : password
+      });
+
+      const token = response.data.access_token;
+      const userData = response.data.admin;
+      
+      if (!token) {
+        throw new Error('No token received from server');
+      }
+      
+      localStorage.setItem('authToken', token);
+      setToken(token);
+      setUser(userData);
+      setIsAuthenticated(true);
+      navigate('/');
+    } catch (err: any) {
+      console.error('Login error:', err.response?.data || err.message);
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Verification failed. Please try again.';
       setError(errorMessage);
       setIsAuthenticated(false);
     } finally {
@@ -224,8 +269,11 @@ export function AuthProvider({
     isAuthenticated,
     isCheckingAuth,
     isLoading,
+    isNotVerified,
+    verificationToken,
     error,
     login,
+    verify,
     signup,
     logout,
     changePassword,
