@@ -1,14 +1,23 @@
 // src/stores/authStore.ts
 import { create } from 'zustand';
 
+interface User {
+  admin_id: number;
+  name: string;
+  email: string;
+  role: string;
+  permissions: string[];
+  avatar: string;
+}
+
 interface AuthState {
-  user: any | null;
+  user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
   isLoading: boolean;
   error: string | null;
-  setUser: (user: any | null) => void;
+  setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   setIsCheckingAuth: (isCheckingAuth: boolean) => void;
   setIsAuthenticated: (isAuthenticated: boolean) => void;

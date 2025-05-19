@@ -1,11 +1,20 @@
 import React, { useEffect, createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import DashboardSkeletonLoader from '@/components/SkeletonLoader';
+import DashboardSkeletonLoader from '@/components/loaders/SkeletonLoader';
 import axiosInstance from '@/utils/axios';
 
+interface User {
+  admin_id: number;
+  name: string;
+  email: string;
+  role: string;
+  permissions: string[];
+  avatar: string;
+}
+
 interface AuthContextType {
-  user: any;
+  user: User;
   token: string | null;
   isAuthenticated: boolean;
   isCheckingAuth: boolean;

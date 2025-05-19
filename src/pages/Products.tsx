@@ -1,60 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { useStore } from '../stores/productStore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import useProductApi from '@/hooks/useProductsApi';
 import { Trash2, Edit, Plus, Search, Star, StarOff, X } from 'lucide-react';
 import ProductForm from '@/components/modals/Productform';
 import CollectionForm from '@/components/modals/CollectionForm';
 import { toast } from 'react-hot-toast';
 
-const Products = () => {
-  const { 
-    products, 
-    collections, 
-    addCollection, 
-    deleteCollection, 
-    updateCollection, 
-    isLoading, 
-    error, 
-    addProduct, 
-    updateProduct, 
-    deleteProduct, 
-    generateImageLink 
-  } = useStore();
-  
-  // Tab state
-  const [activeTab, setActiveTab] = useState('products');
-  
-  // Product states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isAddingProduct, setIsAddingProduct] = useState(false);
-  const [isEditingProduct, setIsEditingProduct] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  
-  // Collection states
-  const [isAddingCollection, setIsAddingCollection] = useState(false);
-  const [isEditingCollection, setIsEditingCollection] = useState(false);
-  const [currentCollection, setCurrentCollection] = useState(null);
-  const [collectionSearchTerm, setCollectionSearchTerm] = useState('');
-  
-  const initialFormData = {
+// Separate this into its own component to prevent re-renders
+const ProductFormModal = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  initialProduct = null, 
+  isEditMode = false,
+  uploadProductImage,
+  userPermissions,
+}) => {
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: 0,
     stock: 0,
     gender: 'Unisex',
+    imageId: '',
     size: '50ml',
     brand: '',
     image: '',
-    imageFile: null
-  };
+    imageFile: null,
+    type: '',
+  });
   
-  const [formData, setFormData] = useState(initialFormData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
+  // Initialize form data if editing
   useEffect(() => {
-    if (error) {
-      toast.error(error);
+    if (isEditMode && initialProduct) {
+      setFormData({
+        name: initialProduct.name || '',
+        description: initialProduct.description || '',
+        price: initialProduct.price || 0,
+        stock: initialProduct.stock || 0,
+        gender: initialProduct.gender || 'Unisex',
+        size: initialProduct.size || '50ml',
+        brand: initialProduct.brand || '',
+        image: initialProduct.image || '',
+        imageId: initialProduct.imageId || '',
+        type: initialProduct.type || '',
+        imageFile: null
+      });
     }
-  }, [error]);
+  }, [isEditMode, initialProduct]);
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -77,12 +73,15 @@ const Products = () => {
     if (formData.imageFile) {
       setUploadingImage(true);
       try {
-        const imageUrl = await generateImageLink(formData.imageFile);
-        setFormData(prev => ({
-          ...prev,
-          image: imageUrl
-        }));
-        toast.success("Image uploaded successfully!");
+        const response = await uploadProductImage(formData.imageFile, userPermissions);
+        if (response && response.success){
+          setFormData(prev => ({
+            ...prev,
+            image: response.image,
+            imageId: response.imageId
+          }));
+          toast.success(response.message);
+        }
       } catch (error) {
         toast.error("Failed to upload image");
       } finally {
@@ -93,14 +92,7 @@ const Products = () => {
     }
   };
   
-  const resetForm = () => {
-    setFormData(initialFormData);
-    setIsAddingProduct(false);
-    setIsEditingProduct(false);
-    setCurrentProduct(null);
-  };
-  
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.name || !formData.brand || !formData.image) {
@@ -122,72 +114,206 @@ const Products = () => {
       gender: formData.gender,
       size: formData.size,
       brand: formData.brand,
-      image: formData.image
+      image: formData.image,
+      imageId: formData.imageId,
+      type: formData.type,
     };
     
-    if (isEditingProduct && currentProduct !== null) {
-      updateProduct(currentProduct, productData);
-      toast.success("Product updated successfully!");
-    } else {
-      addProduct(productData);
-      toast.success("Product added successfully!");
+    setIsLoading(true);
+    try {
+      await onSubmit(productData, formData);
+      onClose();
+    } catch (error) {
+      toast.error("Failed to save product");
+    } finally {
+      setIsLoading(false);
     }
-    
-    resetForm();
   };
   
-  const handleEditProduct = (id) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/50 flex justify-center items-center p-4">
+      <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-end p-4">
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-800 transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="px-6 pb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            {isEditMode ? 'Edit Product' : 'Add New Product'}
+          </h2>
+          <ProductForm
+            formData={formData}
+            setFormData={setFormData}
+            isEditingProduct={isEditMode}
+            isLoading={isLoading}
+            uploadingImage={uploadingImage}
+            handleInputChange={handleInputChange}
+            handleImageChange={handleImageChange}
+            handleGenerateImageLink={handleGenerateImageLink}
+            resetForm={onClose}
+            handleSubmit={handleSubmit}
+            onCancel={onClose}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Similarly for CollectionFormModal (optional - implement if needed)
+const CollectionFormModal = ({ isOpen, onClose, onSubmit, initialCollection = null, isEditMode = false, products }) => {
+  // Similar implementation as ProductFormModal
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/50 flex justify-center items-center p-4">
+      <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-end p-4">
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-800 transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="px-6 pb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            {isEditMode ? 'Edit Collection' : 'Add New Collection'}
+          </h2>
+          <CollectionForm 
+            isEditingCollection={isEditMode}
+            currentCollection={initialCollection}
+            products={products}
+            isLoading={false}
+            onSubmit={onSubmit}
+            onCancel={onClose}
+            setIsAddingCollection={() => {}}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Products = () => {
+  const { user } = useAuth();
+  const { 
+    products,
+    collections, 
+    addCollection, 
+    deleteCollection, 
+    updateCollection,
+    loadProducts, 
+    isLoading, 
+    error, 
+    createProduct, 
+    editProduct, 
+    removeProduct, 
+    removeProductImage,
+    uploadProductImage  
+  } = useProductApi();
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState('products');
+  
+  // Product states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
+  
+  // Collection states
+  const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
+  const [isEditingCollection, setIsEditingCollection] = useState(false);
+  const [currentCollection, setCurrentCollection] = useState(null);
+  const [collectionSearchTerm, setCollectionSearchTerm] = useState('');
+  
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    loadProducts(user.permissions);
+  }, []);
+  
+  // Product handlers
+  const openAddProductModal = () => {
+    setCurrentProduct(null);
+    setIsEditingProduct(false);
+    setIsProductModalOpen(true);
+  };
+  
+  const openEditProductModal = (id) => {
     const product = products.find(p => p.id === id);
     if (product) {
-      setFormData({
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        stock: product.stock,
-        gender: product.gender,
-        size: product.size,
-        brand: product.brand,
-        image: product.image,
-        imageFile: null
-      });
-      setCurrentProduct(id);
+      setCurrentProduct(product);
       setIsEditingProduct(true);
-      setIsAddingProduct(true);
+      setIsProductModalOpen(true);
     }
+  };
+  
+  const closeProductModal = () => {
+    setIsProductModalOpen(false);
+    setCurrentProduct(null);
+    setIsEditingProduct(false);
+  };
+  
+  const handleProductSubmit = async (productData, formData) => {
+    let response;
+    if (isEditingProduct && currentProduct) {
+      response = await editProduct(currentProduct.id, user.permissions, productData);
+      toast.success("Product updated successfully!");
+    } else {
+      response = await createProduct(user.permissions, productData);
+      toast.success("Product added successfully!");
+    }
+    return response;
   };
   
   const handleDeleteProduct = (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteProduct(id);
+      removeProduct(id, user.permissions);
       toast.success("Product deleted successfully!");
     }
   };
   
+  // Collection handlers
+  const openAddCollectionModal = () => {
+    setCurrentCollection(null);
+    setIsEditingCollection(false);
+    setIsCollectionModalOpen(true);
+  };
+  
+  const openEditCollectionModal = (id) => {
+    const collection = collections.find(c => c.id === id);
+    if (collection) {
+      setCurrentCollection(collection);
+      setIsEditingCollection(true);
+      setIsCollectionModalOpen(true);
+    }
+  };
+  
+  const closeCollectionModal = () => {
+    setIsCollectionModalOpen(false);
+    setCurrentCollection(null);
+    setIsEditingCollection(false);
+  };
+  
   const handleCollectionSubmit = async (collectionData) => {
     if (isEditingCollection && currentCollection) {
-      await updateCollection(currentCollection, collectionData);
+      await updateCollection(currentCollection.id, collectionData);
       toast.success("Collection updated successfully!");
     } else {
       await addCollection(collectionData);
       toast.success("Collection created successfully!");
-    }
-    
-    // Close the collection form
-    resetCollectionForm();
-  };
-  
-  const resetCollectionForm = () => {
-    setIsAddingCollection(false);
-    setIsEditingCollection(false);
-    setCurrentCollection(null);
-  };
-  
-  const handleEditCollection = (id) => {
-    const collection = collections.find(c => c.id === id);
-    if (collection) {
-      setCurrentCollection(collection.id);
-      setIsEditingCollection(true);
-      setIsAddingCollection(true);
     }
   };
   
@@ -229,7 +355,7 @@ const Products = () => {
               />
               <div className="absolute top-2 right-2 flex space-x-2">
                 <button 
-                  onClick={() => handleEditProduct(product.id)}
+                  onClick={() => openEditProductModal(product.id)}
                   className="p-2 bg-white/90 hover:bg-purple-100 rounded-full shadow-sm transition-colors"
                 >
                   <Edit size={16} className="text-purple-700" />
@@ -300,7 +426,7 @@ const Products = () => {
               </div>
               <div className="absolute top-2 right-2 flex space-x-2">
                 <button 
-                  onClick={() => handleEditCollection(collection.id)}
+                  onClick={() => openEditCollectionModal(collection.id)}
                   className="p-2 bg-white/90 hover:bg-purple-100 rounded-full shadow-sm transition-colors"
                 >
                   <Edit size={16} className="text-purple-700" />
@@ -350,25 +476,6 @@ const Products = () => {
       )}
     </div>
   );
-  
-  // Modal background
-  const Modal = ({ children, onClose }) => (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/50 flex justify-center items-center p-4">
-      <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-end p-4">
-          <button 
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        <div className="px-6 pb-6">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white pb-16">
@@ -405,12 +512,12 @@ const Products = () => {
         </div>
         
         {/* Products Tab Content */}
-        {activeTab === 'products' && !isAddingProduct && (
+        {activeTab === 'products' && (
           <div>
             {/* Add Product Button */}
             <div className="flex justify-between items-center mb-6">
               <button
-                onClick={() => setIsAddingProduct(true)}
+                onClick={openAddProductModal}
                 className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 <Plus size={18} />
@@ -442,12 +549,12 @@ const Products = () => {
         )}
         
         {/* Collections Tab Content */}
-        {activeTab === 'collections' && !isAddingCollection && (
+        {activeTab === 'collections' && (
           <div>
             {/* Add Collection Button */}
             <div className="flex justify-between items-center mb-6">
               <button
-                onClick={() => setIsAddingCollection(true)}
+                onClick={openAddCollectionModal}
                 className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 <Plus size={18} />
@@ -478,50 +585,25 @@ const Products = () => {
           </div>
         )}
         
-        {/* Product Form Modal */}
-        {isAddingProduct && (
-          <Modal onClose={resetForm}>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-              {isEditingProduct ? 'Edit Product' : 'Add New Product'}
-            </h2>
-            <ProductForm
-              isAddingProduct={isAddingProduct}
-              setIsAddingProduct={setIsAddingProduct}
-              formData={formData}
-              setFormData={setFormData}
-              isEditingProduct={isEditingProduct}
-              isLoading={isLoading}
-              uploadingImage={uploadingImage}
-              handleInputChange={handleInputChange}
-              handleImageChange={handleImageChange}
-              handleGenerateImageLink={handleGenerateImageLink}
-              resetForm={resetForm}
-              handleSubmit={handleSubmit}
-            />
-          </Modal>
-        )}
+        {/* Modals - rendered conditionally but isolated from parent component */}
+        <ProductFormModal
+          isOpen={isProductModalOpen}
+          onClose={closeProductModal}
+          onSubmit={handleProductSubmit}
+          initialProduct={currentProduct}
+          isEditMode={isEditingProduct}
+          uploadProductImage={uploadProductImage}
+          userPermissions={user.permissions}
+        />
         
-        {/* Collection Form Modal */}
-        {isAddingCollection && (
-          <Modal onClose={resetCollectionForm}>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-              {isEditingCollection ? 'Edit Collection' : 'Add New Collection'}
-            </h2>
-            <CollectionForm 
-              isEditingCollection={isEditingCollection}
-              currentCollection={
-                isEditingCollection 
-                  ? collections.find(c => c.id === currentCollection) 
-                  : null
-              }
-              products={products}
-              isLoading={isLoading}
-              onSubmit={handleCollectionSubmit}
-              onCancel={resetCollectionForm}
-              setIsAddingCollection={setIsAddingCollection}
-            />
-          </Modal>
-        )}
+        <CollectionFormModal
+          isOpen={isCollectionModalOpen}
+          onClose={closeCollectionModal}
+          onSubmit={handleCollectionSubmit}
+          initialCollection={currentCollection}
+          isEditMode={isEditingCollection}
+          products={products}
+        />
       </div>
     </div>
   );

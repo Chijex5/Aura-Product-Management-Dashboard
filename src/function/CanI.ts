@@ -9,16 +9,6 @@ function canI(permissions: string[], action: string): boolean {
   if (permissions.includes('all')) {
     return true;
   }
-
-  // Check if the specific permission exists in the admin's permissions
   return permissions.includes(action);
 }
-
-// Example usage:
-// const adminPermissions = ['products.view', 'products.edit', 'products.create'];
-// 
-// // Check if admin can create a product
-// const canCreateProduct = canI(adminPermissions, 'products.create'); // true
-// 
-// // Check if admin can delete a product
-// const canDeleteProduct = canI(adminPermissions, 'products.delete'); // false
+export default canI;

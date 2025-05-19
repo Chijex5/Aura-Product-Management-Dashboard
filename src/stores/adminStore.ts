@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 interface Admin {
   id: number;
   name: string;
@@ -27,6 +28,7 @@ export const useAdminStore = create<AdminStore>(set => ({
     admins
   }),
   addAdmin: admin => set(state => ({
+    
     admins: [...state.admins, admin]
   })),
   updateAdmin: (id, updates) => set(state => ({

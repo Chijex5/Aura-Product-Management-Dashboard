@@ -69,7 +69,7 @@ uploadAxiosInstance.interceptors.request.use(
 // Helper function for file uploads
 export const uploadFile = async (url: string, file: File, additionalData = {}) => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('image', file);
   
   // Add any additional data fields
   Object.entries(additionalData).forEach(([key, value]) => {
