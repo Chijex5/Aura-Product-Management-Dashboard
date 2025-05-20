@@ -1,56 +1,54 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Filter, Mail, Phone, MapPin, Calendar, ShoppingBag, DollarSign, Clock, AlertCircle, Ban, CheckCircle, User } from 'lucide-react';
+import { Search, Filter, Mail, Phone, Calendar, AlertCircle, CheckCircle, User, Shield, Key, Lock, ExternalLink } from 'lucide-react';
 import { useUserApi } from '../hooks/useUserApi';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
+
 const Users = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    users,
-    isLoading,
-    error,
-    loadUsers,
-    updateUserStatus
-  } = useUserApi();
+  const { user } = useAuth();
+  const { users, isLoading, error, loadUsers, updateUserStatus, resendVerification } = useUserApi();
+  
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [verificationFilter, setVerificationFilter] = useState('all');
   const [sortBy, setSortBy] = useState('joined');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
   // Load users on component mount
   useEffect(() => {
-    loadUsers(user.permissions);
+    loadUsers(user?.permissions || []);
   }, []);
+
   // Filter and sort users
   const filteredAndSortedUsers = useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesVerification = verificationFilter === 'all' || 
+                                (verificationFilter === 'verified' && user.isVerified) ||
+                                (verificationFilter === 'unverified' && !user.isVerified);
+      return matchesSearch && matchesStatus && matchesVerification;
     }).sort((a, b) => {
       switch (sortBy) {
         case 'name':
           return a.name.localeCompare(b.name);
         case 'joined':
           return new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime();
-        case 'orders':
-          return b.totalOrders - a.totalOrders;
-        case 'spent':
-          return b.totalSpent - a.totalSpent;
+        case 'email':
+          return a.email.localeCompare(b.email);
         default:
           return 0;
       }
     });
-  }, [users, searchTerm, statusFilter, sortBy]);
-  const handleStatusChange = async (userId: number, newStatus: string) => {
+  }, [users, searchTerm, statusFilter, verificationFilter, sortBy]);
+
+  const handleStatusChange = async (userId: number, newStatus:string) => {
     try {
-      const response = await updateUserStatus(userId, newStatus, user.permissions);
+      const response = await updateUserStatus(userId, newStatus, user?.permissions || []);
       if (response.success) {
         toast.success(response.message);
-        loadUsers(user.permissions);
+        loadUsers(user?.permissions || []);
       } else {
         toast.error(response.message);
       }
@@ -58,7 +56,21 @@ const Users = () => {
       toast.error('Failed to update user status');
     }
   };
-  const getStatusColor = (status: string) => {
+  
+  const handleResendVerification = async (userId: number) => {
+    try {
+      const response = await resendVerification(userId, user?.permissions || []);
+      if (response.success) {
+        toast.success('Verification email sent successfully');
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error('Failed to resend verification email');
+    }
+  };
+
+  const getStatusColor = (status:string) => {
     switch (status) {
       case 'active':
         return 'bg-green-100 text-green-800';
@@ -70,28 +82,26 @@ const Users = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-  const formatDate = (date: string) => {
+
+  const formatDate = (date:string) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold">Users Management</h1>
         <p className="text-gray-500">
-          Manage customer accounts and view user activity
+          Manage user accounts and verification status
         </p>
       </div>
+
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 rounded-lg bg-blue-500">
@@ -101,6 +111,7 @@ const Users = () => {
           <h3 className="text-2xl font-bold">{users.length}</h3>
           <p className="text-gray-500 text-sm">Total Users</p>
         </div>
+        
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 rounded-lg bg-green-500">
@@ -108,33 +119,24 @@ const Users = () => {
             </div>
           </div>
           <h3 className="text-2xl font-bold">
-            {users.filter(u => u.status === 'active').length}
+            {users.filter(u => u.isVerified).length}
           </h3>
-          <p className="text-gray-500 text-sm">Active Users</p>
+          <p className="text-gray-500 text-sm">Verified Users</p>
         </div>
+        
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 rounded-lg bg-yellow-500">
-              <ShoppingBag size={20} className="text-white" />
+              <AlertCircle size={20} className="text-white" />
             </div>
           </div>
           <h3 className="text-2xl font-bold">
-            {users.reduce((acc, user) => acc + user.totalOrders, 0)}
+            {users.filter(u => !u.isVerified).length}
           </h3>
-          <p className="text-gray-500 text-sm">Total Orders</p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 rounded-lg bg-purple-500">
-              <DollarSign size={20} className="text-white" />
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold">
-            {formatCurrency(users.reduce((acc, user) => acc + user.totalSpent, 0))}
-          </h3>
-          <p className="text-gray-500 text-sm">Total Revenue</p>
+          <p className="text-gray-500 text-sm">Pending Verification</p>
         </div>
       </div>
+
       {/* Filters and Search */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between gap-4">
@@ -142,20 +144,49 @@ const Users = () => {
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search size={18} className="text-gray-400" />
             </div>
-            <input type="text" placeholder="Search users..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
+            <input 
+              type="text" 
+              placeholder="Search by name or email..." 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)} 
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
+            />
           </div>
+          
           <div className="flex gap-2">
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+            <select 
+              value={statusFilter} 
+              onChange={e => setStatusFilter(e.target.value)} 
+              className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            >
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
               <option value="suspended">Suspended</option>
             </select>
-            <button onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)} className="border border-gray-300 rounded-md p-2 hover:bg-gray-50">
-              <Filter size={18} className="text-gray-600" />
-            </button>
+            
+            <select 
+              value={verificationFilter} 
+              onChange={e => setVerificationFilter(e.target.value)} 
+              className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Verification</option>
+              <option value="verified">Verified</option>
+              <option value="unverified">Unverified</option>
+            </select>
+            
+            <select 
+              value={sortBy} 
+              onChange={e => setSortBy(e.target.value)} 
+              className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="joined">Sort by Join Date</option>
+              <option value="name">Sort by Name</option>
+              <option value="email">Sort by Email</option>
+            </select>
           </div>
         </div>
+
         {/* Users Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -171,10 +202,7 @@ const Users = () => {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Orders
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Spent
+                  Verification
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Joined
@@ -185,23 +213,37 @@ const Users = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? <tr>
+              {isLoading ? (
+                <tr>
                   <td colSpan={7} className="px-6 py-4 text-center">
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
                     </div>
                   </td>
-                </tr> : filteredAndSortedUsers.length === 0 ? <tr>
+                </tr>
+              ) : filteredAndSortedUsers.length === 0 ? (
+                <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                     No users found
                   </td>
-                </tr> : filteredAndSortedUsers.map(user => <tr key={user.id} className="hover:bg-gray-50">
+                </tr>
+              ) : (
+                filteredAndSortedUsers.map(user => (
+                  <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
-                          {user.avatar ? <img className="h-10 w-10 rounded-full object-cover" src={user.avatar} alt={user.name} /> : <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          {user.avatar ? (
+                            <img 
+                              className="h-10 w-10 rounded-full object-cover" 
+                              src={user.avatar} 
+                              alt={user.name} 
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                               <User size={20} className="text-gray-500" />
-                            </div>}
+                            </div>
+                          )}
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
@@ -213,37 +255,67 @@ const Users = () => {
                         </div>
                       </div>
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{user.phone}</div>
-                      <div className="text-sm text-gray-500">
-                        {user.location}
+                      <div className="text-sm text-gray-900 flex items-center">
+                        <Phone size={16} className="text-gray-400 mr-1" />
+                        {user.phone || "Not provided"}
                       </div>
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.status)}`}>
                         {user.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.totalOrders}
+                    
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {user.isVerified ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle size={14} className="mr-1" /> Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <AlertCircle size={14} className="mr-1" /> Pending
+                        </span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(user.totalSpent)}
-                    </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(user.joinedDate)}
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <select value={user.status} onChange={e => handleStatusChange(user.id, e.target.value)} className="border border-gray-300 rounded-md text-sm py-1 px-2">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="suspended">Suspended</option>
-                      </select>
+                      <div className="flex justify-end space-x-2">
+                        <select 
+                          value={user.status} 
+                          onChange={e => handleStatusChange(user.id, e.target.value)} 
+                          className="border border-gray-300 rounded-md text-sm py-1 px-2"
+                        >
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="suspended">Suspended</option>
+                        </select>
+                        
+                        {!user.isVerified && (
+                          <button
+                            onClick={() => handleResendVerification(user.id)}
+                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded-md text-sm"
+                            title="Resend verification email"
+                          >
+                            <Mail size={16} />
+                          </button>
+                        )}
+                        
+                      </div>
                     </td>
-                  </tr>)}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+        
         {/* Pagination */}
         <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-500">
@@ -256,15 +328,23 @@ const Users = () => {
             of <span className="font-medium">{users.length}</span> users
           </div>
           <div className="flex space-x-2">
-            <button disabled className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+            <button 
+              disabled 
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
               Previous
             </button>
-            <button disabled className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+            <button 
+              disabled 
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
               Next
             </button>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Users;

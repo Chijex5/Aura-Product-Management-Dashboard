@@ -55,7 +55,6 @@ uploadAxiosInstance.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-// Helper function for file uploads
 export const uploadFile = async (url: string, file: File, additionalData = {}) => {
   const formData = new FormData();
   formData.append('image', file);

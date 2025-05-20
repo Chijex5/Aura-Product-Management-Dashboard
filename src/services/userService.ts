@@ -6,10 +6,9 @@ export interface UserData {
   name: string;
   email: string;
   phone: string;
-  location: string;
   status: string;
-  totalOrders: number;
-  totalSpent: number;
+  location: string;
+  isVerified: boolean;
   joinedDate: string;
   avatar?: string;
 }
@@ -59,6 +58,31 @@ const UserService = {
       };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Failed to update user status';
+      store.setError(errorMessage);
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  },
+  resendVerification: async (userId: number, permissions: string[]) => {
+    const store = useUserStore.getState();
+    const ICan = canI(permissions, 'users.edit');
+    if (!ICan) {
+      return {
+        success: false,
+        message: "You do not have permission to send verifications to users"
+      };
+    }
+    try {
+      const response = await axiosInstance.post(`/users/${userId}/resend-verification`);
+      return {
+        success: true,
+        data: response.data,
+        message: 'Verification email sent successfully'
+      };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to resend verification email';
       store.setError(errorMessage);
       return {
         success: false,

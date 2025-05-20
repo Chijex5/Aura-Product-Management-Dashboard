@@ -47,11 +47,32 @@ export const useUserApi = () => {
       setIsLoading(false);
     }
   };
+  const resendVerification = async (userId: number, permissions: string[]) => {
+    try {
+      setIsLoading(true);
+      const response = await UserService.resendVerification(userId, permissions);
+      if (response.success) {
+        await loadUsers(permissions);
+      }
+      return response;
+    } catch (error) {
+      console.error('Error resending verification email:', error);
+      setError('Failed to send user verification email');
+      return {
+        success: false,
+        message: 'Failed to resend verfication Email'
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     users,
     isLoading,
     error,
     loadUsers,
+    resendVerification,
     updateUserStatus
   };
 };
