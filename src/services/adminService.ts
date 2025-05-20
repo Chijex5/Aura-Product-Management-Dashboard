@@ -134,7 +134,7 @@ export const AdminService = {
   
   updateAdmin: async (id: number, permissions: string[], updates: Partial<AdminData>) => {
     const store = useAdminStore.getState();
-    const ICan = canI(permissions, 'admin.update');
+    const ICan = canI(permissions, 'admin.edit');
     if(!ICan) {
         // store.setError('You do not have permission to update an admin');
         return{
