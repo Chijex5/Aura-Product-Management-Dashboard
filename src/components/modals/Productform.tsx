@@ -126,9 +126,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
               >
-                <option value="Unisex">Unisex</option>
-                <option value="Feminine">Feminine</option>
-                <option value="Masculine">Masculine</option>
+                <option value="unisex">Unisex</option>
+                <option value="female">Feminine</option>
+                <option value="male">Masculine</option>
               </select>
             </div>
             
