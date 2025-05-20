@@ -126,7 +126,7 @@ export function AuthProvider({
       navigate('/');
     } catch (err: any) {
       console.error('Login error:', err.response?.data || err.message);
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Login failed. Please try again.';
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Internal Sever Error. Please try again.';
       setError(errorMessage);
       setIsAuthenticated(false);
     } finally {
