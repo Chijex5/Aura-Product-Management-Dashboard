@@ -1,6 +1,5 @@
 // src/stores/authStore.ts
 import { create } from 'zustand';
-
 interface User {
   admin_id: number;
   name: string;
@@ -9,7 +8,6 @@ interface User {
   permissions: string[];
   avatar: string;
 }
-
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -28,8 +26,7 @@ interface AuthState {
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
 }
-
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>(set => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -38,12 +35,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   verificationToken: '',
   isLoading: false,
   error: null,
-  setUser: (user) => set({ user }),
-  setToken: (token) => set({ token }),
-  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
-  setIsCheckingAuth: (isCheckingAuth) => set({ isCheckingAuth}),
-  setVerificationToken: (verificationToken) => set({ verificationToken }),
-  setIsLoading: (isLoading) => set({ isLoading }),
-  setIsNotVerified: (isNotVerified) => set({ isNotVerified }),
-  setError: (error) => set({ error }),
+  setUser: user => set({
+    user
+  }),
+  setToken: token => set({
+    token
+  }),
+  setIsAuthenticated: isAuthenticated => set({
+    isAuthenticated
+  }),
+  setIsCheckingAuth: isCheckingAuth => set({
+    isCheckingAuth
+  }),
+  setVerificationToken: verificationToken => set({
+    verificationToken
+  }),
+  setIsLoading: isLoading => set({
+    isLoading
+  }),
+  setIsNotVerified: isNotVerified => set({
+    isNotVerified
+  }),
+  setError: error => set({
+    error
+  })
 }));

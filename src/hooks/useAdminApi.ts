@@ -31,7 +31,7 @@ export const useAdminApi = () => {
   /**
    * Create a new admin
    */
-  const createAdmin = async (adminData: AdminData, permissions:string[]) => {
+  const createAdmin = async (adminData: AdminData, permissions: string[]) => {
     try {
       const result = await AdminService.createAdmin(adminData, permissions);
       return result;
@@ -44,7 +44,7 @@ export const useAdminApi = () => {
   /**
    * Update an existing admin
    */
-  const updateAdmin = async (id: number, permissions:string[], updates: Partial<AdminData>) => {
+  const updateAdmin = async (id: number, permissions: string[], updates: Partial<AdminData>) => {
     try {
       const result = await AdminService.updateAdmin(id, permissions, updates);
       return result;
@@ -79,7 +79,6 @@ export const useAdminApi = () => {
       throw error;
     }
   };
-
   return {
     admins,
     isLoading,
@@ -88,8 +87,7 @@ export const useAdminApi = () => {
     createAdmin,
     updateAdmin,
     deleteAdmin,
-    getCurrentAdmin,
+    getCurrentAdmin
   };
 };
-
 export default useAdminApi;

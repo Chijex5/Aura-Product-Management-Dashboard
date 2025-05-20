@@ -1,8 +1,6 @@
 import React from 'react';
-
 const AdminSkeletonLoader = () => {
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header Section Skeleton */}
       <div className="flex justify-between items-center">
         <div className="space-y-2">
@@ -27,17 +25,14 @@ const AdminSkeletonLoader = () => {
             <thead className="bg-gray-50">
               <tr>
                 {/* Column Headers Skeleton */}
-                {[...Array(5)].map((_, index) => (
-                  <th key={index} className="px-6 py-3 text-left">
+                {[...Array(5)].map((_, index) => <th key={index} className="px-6 py-3 text-left">
                     <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                  </th>
-                ))}
+                  </th>)}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {/* Table Rows Skeleton */}
-              {[...Array(5)].map((_, rowIndex) => (
-                <tr key={rowIndex}>
+              {[...Array(5)].map((_, rowIndex) => <tr key={rowIndex}>
                   {/* Admin Column Skeleton */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -57,9 +52,7 @@ const AdminSkeletonLoader = () => {
                   {/* Permissions Column Skeleton */}
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
-                      {[...Array(2)].map((_, index) => (
-                        <div key={index} className="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>
-                      ))}
+                      {[...Array(2)].map((_, index) => <div key={index} className="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>)}
                     </div>
                   </td>
                   
@@ -75,14 +68,11 @@ const AdminSkeletonLoader = () => {
                       <div className="h-6 w-6 bg-gray-200 rounded animate-pulse"></div>
                     </div>
                   </td>
-                </tr>
-              ))}
+                </tr>)}
             </tbody>
           </table>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AdminSkeletonLoader;

@@ -18,7 +18,21 @@
     "react-hot-toast": "^2.5.2",
     "react-router-dom": "^6.26.2",
     "tailwind-merge": "latest",
-    "zustand": "latest"
+    "zustand": "latest",
+    "@/contexts/AuthContext": "latest",
+    "@/components/loaders/SkeletonLoader": "latest",
+    "@/utils/axios": "latest",
+    "@/stores/adminStore": "latest",
+    "@/services/adminService": "latest",
+    "@/stores/productStore": "latest",
+    "@/services/productService": "latest",
+    "@/hooks/useAdminApi": "latest",
+    "@/components/loaders/adminSkeletonLoader": "latest",
+    "@/hooks/useProductsApi": "latest",
+    "@/components/modals/Productform": "latest",
+    "@/components/modals/CollectionForm": "latest",
+    "@/function/CanI": "latest",
+    "zustand/middleware": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.11.18",

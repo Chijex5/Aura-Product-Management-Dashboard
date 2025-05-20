@@ -14,9 +14,7 @@ export function MobileMenuProvider({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
   const toggleMenu = () => setIsOpen(!isOpen);
-
   const closeMenu = () => setIsOpen(false);
   return <MobileMenuContext.Provider value={{
     isOpen,
