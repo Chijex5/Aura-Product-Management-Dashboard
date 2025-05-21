@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Filter, Mail, Phone, Calendar, AlertCircle, CheckCircle, User, Shield, Key, Lock, ExternalLink } from 'lucide-react';
+import { Search, Filter, Mail, Phone, Calendar, AlertCircle, CheckCircle, User, Shield, X, ChevronDown, MoreHorizontal, List } from 'lucide-react';
 import { useUserApi } from '../hooks/useUserApi';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -13,6 +13,20 @@ const Users = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [sortBy, setSortBy] = useState('joined');
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState({});
+  const [isMobileView, setIsMobileView] = useState(false);
+  
+  // Detect mobile view
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Load users on component mount
   useEffect(() => {
@@ -43,7 +57,7 @@ const Users = () => {
     });
   }, [users, searchTerm, statusFilter, verificationFilter, sortBy]);
 
-  const handleStatusChange = async (userId: number, newStatus:string) => {
+  const handleStatusChange = async (userId, newStatus) => {
     try {
       const response = await updateUserStatus(userId, newStatus, user?.permissions || []);
       if (response.success) {
@@ -55,9 +69,12 @@ const Users = () => {
     } catch (error) {
       toast.error('Failed to update user status');
     }
+    
+    // Close dropdown
+    setIsStatusDropdownOpen(prev => ({ ...prev, [userId]: false }));
   };
   
-  const handleResendVerification = async (userId: number) => {
+  const handleResendVerification = async (userId) => {
     try {
       const response = await resendVerification(userId, user?.permissions || []);
       if (response.success) {
@@ -70,20 +87,20 @@ const Users = () => {
     }
   };
 
-  const getStatusColor = (status:string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-500' };
       case 'inactive':
-        return 'bg-gray-100 text-gray-800';
+        return { bg: 'bg-gray-100', text: 'text-gray-800', dot: 'bg-gray-500' };
       case 'suspended':
-        return 'bg-red-100 text-red-800';
+        return { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-500' };
       default:
-        return 'bg-gray-100 text-gray-800';
+        return { bg: 'bg-gray-100', text: 'text-gray-800', dot: 'bg-gray-500' };
     }
   };
 
-  const formatDate = (date:string) => {
+  const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -91,8 +108,136 @@ const Users = () => {
     });
   };
 
+  // Filter options
+  const statusOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'suspended', label: 'Suspended' }
+  ];
+  
+  const verificationOptions = [
+    { value: 'all', label: 'All Verification' },
+    { value: 'verified', label: 'Verified' },
+    { value: 'unverified', label: 'Unverified' }
+  ];
+  
+  const sortOptions = [
+    { value: 'joined', label: 'Sort by Join Date' },
+    { value: 'name', label: 'Sort by Name' },
+    { value: 'email', label: 'Sort by Email' }
+  ];
+
+  // Toggle dropdown for user status
+  const toggleStatusDropdown = (userId) => {
+    setIsStatusDropdownOpen(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
+  // User card for mobile view
+  const UserCard = ({ user }) => {
+    const statusColors = getStatusColor(user.status);
+    
+    return (
+      <div className="bg-white rounded-lg shadow mb-4 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center">
+            {user.avatar ? (
+              <img 
+                className="h-10 w-10 rounded-full object-cover" 
+                src={user.avatar} 
+                alt={user.name} 
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <User size={18} className="text-gray-500" />
+              </div>
+            )}
+            <div className="ml-3">
+              <div className="font-medium text-gray-900">{user.name}</div>
+              <div className="text-xs text-gray-500">{user.email}</div>
+            </div>
+          </div>
+          
+          <div className="relative">
+            <button 
+              onClick={() => toggleStatusDropdown(user.id)}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              <MoreHorizontal size={18} className="text-gray-500" />
+            </button>
+            
+            {isStatusDropdownOpen[user.id] && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                <div className="py-1">
+                  <button 
+                    onClick={() => handleStatusChange(user.id, 'active')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Set Active
+                  </button>
+                  <button 
+                    onClick={() => handleStatusChange(user.id, 'inactive')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Set Inactive
+                  </button>
+                  <button 
+                    onClick={() => handleStatusChange(user.id, 'suspended')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Set Suspended
+                  </button>
+                  {!user.isVerified && (
+                    <button 
+                      onClick={() => handleResendVerification(user.id)}
+                      className="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
+                    >
+                      Resend Verification
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="flex items-center">
+            <Phone size={14} className="text-gray-400 mr-1" />
+            <span className="text-gray-600">{user.phone || "Not provided"}</span>
+          </div>
+          
+          <div className="flex items-center">
+            <Calendar size={14} className="text-gray-400 mr-1" />
+            <span className="text-gray-600">{formatDate(user.joinedDate)}</span>
+          </div>
+          
+          <div className="flex items-center">
+            <div className={`h-2 w-2 rounded-full ${statusColors.dot} mr-1`}></div>
+            <span className="capitalize">{user.status}</span>
+          </div>
+          
+          <div>
+            {user.isVerified ? (
+              <span className="inline-flex items-center text-green-700">
+                <CheckCircle size={14} className="mr-1" /> Verified
+              </span>
+            ) : (
+              <span className="inline-flex items-center text-yellow-700">
+                <AlertCircle size={14} className="mr-1" /> Pending
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full">
       <div>
         <h1 className="text-2xl font-bold">Users Management</h1>
         <p className="text-gray-500">
@@ -101,242 +246,342 @@ const Users = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 rounded-lg bg-blue-500">
-              <User size={20} className="text-white" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <div className="p-2 rounded-full bg-blue-100">
+              <User size={18} className="text-blue-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-gray-500">Total Users</p>
+              <h3 className="text-xl font-bold">{users.length}</h3>
             </div>
           </div>
-          <h3 className="text-2xl font-bold">{users.length}</h3>
-          <p className="text-gray-500 text-sm">Total Users</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 rounded-lg bg-green-500">
-              <CheckCircle size={20} className="text-white" />
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <div className="p-2 rounded-full bg-green-100">
+              <CheckCircle size={18} className="text-green-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-gray-500">Verified</p>
+              <h3 className="text-xl font-bold">
+                {users.filter(u => u.isVerified).length}
+              </h3>
             </div>
           </div>
-          <h3 className="text-2xl font-bold">
-            {users.filter(u => u.isVerified).length}
-          </h3>
-          <p className="text-gray-500 text-sm">Verified Users</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 rounded-lg bg-yellow-500">
-              <AlertCircle size={20} className="text-white" />
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <div className="p-2 rounded-full bg-yellow-100">
+              <AlertCircle size={18} className="text-yellow-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-gray-500">Pending</p>
+              <h3 className="text-xl font-bold">
+                {users.filter(u => !u.isVerified).length}
+              </h3>
             </div>
           </div>
-          <h3 className="text-2xl font-bold">
-            {users.filter(u => !u.isVerified).length}
-          </h3>
-          <p className="text-gray-500 text-sm">Pending Verification</p>
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400" />
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray-400" />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search users..." 
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)} 
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
+              />
             </div>
-            <input 
-              type="text" 
-              placeholder="Search by name or email..." 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)} 
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
-            />
+            
+            <div className="flex">
+              <button 
+                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg"
+              >
+                <Filter size={16} />
+                <span>Filters</span>
+                <ChevronDown size={16} className={`transform transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
           </div>
           
-          <div className="flex gap-2">
-            <select 
-              value={statusFilter} 
-              onChange={e => setStatusFilter(e.target.value)} 
-              className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-            </select>
-            
-            <select 
-              value={verificationFilter} 
-              onChange={e => setVerificationFilter(e.target.value)} 
-              className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">All Verification</option>
-              <option value="verified">Verified</option>
-              <option value="unverified">Unverified</option>
-            </select>
-            
-            <select 
-              value={sortBy} 
-              onChange={e => setSortBy(e.target.value)} 
-              className="border border-gray-300 rounded-md text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="joined">Sort by Join Date</option>
-              <option value="name">Sort by Name</option>
-              <option value="email">Sort by Email</option>
-            </select>
-          </div>
+          {/* Expanded Filters */}
+          {isFiltersOpen && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <div className="flex flex-wrap gap-2">
+                  {statusOptions.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setStatusFilter(option.value)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        statusFilter === option.value 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-300' 
+                          : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Verification</label>
+                <div className="flex flex-wrap gap-2">
+                  {verificationOptions.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setVerificationFilter(option.value)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        verificationFilter === option.value 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-300' 
+                          : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                <div className="flex flex-wrap gap-2">
+                  {sortOptions.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setSortBy(option.value)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        sortBy === option.value 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-300' 
+                          : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Active Filters */}
+          {(statusFilter !== 'all' || verificationFilter !== 'all') && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {statusFilter !== 'all' && (
+                <div className="flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">
+                  Status: {statusFilter}
+                  <button 
+                    onClick={() => setStatusFilter('all')}
+                    className="ml-1 p-1"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+              
+              {verificationFilter !== 'all' && (
+                <div className="flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">
+                  {verificationFilter === 'verified' ? 'Verified' : 'Unverified'}
+                  <button 
+                    onClick={() => setVerificationFilter('all')}
+                    className="ml-1 p-1"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Users Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Verification
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Joined
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredAndSortedUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                filteredAndSortedUsers.map(user => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
-                          {user.avatar ? (
-                            <img 
-                              className="h-10 w-10 rounded-full object-cover" 
-                              src={user.avatar} 
-                              alt={user.name} 
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                              <User size={20} className="text-gray-500" />
+        {/* User List */}
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : filteredAndSortedUsers.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <User size={32} className="text-gray-400" />
+            </div>
+            <p className="font-medium">No users found</p>
+            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          <>
+            {/* Mobile View - Cards */}
+            {isMobileView ? (
+              <div className="p-4">
+                {filteredAndSortedUsers.map(user => (
+                  <UserCard key={user.id} user={user} />
+                ))}
+              </div>
+            ) : (
+              /* Desktop View - Table */
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contact
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Verification
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Joined
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredAndSortedUsers.map(user => {
+                      const statusColors = getStatusColor(user.status);
+                      return (
+                        <tr key={user.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                {user.avatar ? (
+                                  <img 
+                                    className="h-10 w-10 rounded-full object-cover" 
+                                    src={user.avatar} 
+                                    alt={user.name} 
+                                  />
+                                ) : (
+                                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <User size={18} className="text-gray-500" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                <div className="text-sm text-gray-500">{user.email}</div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {user.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {user.email}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 flex items-center">
-                        <Phone size={16} className="text-gray-400 mr-1" />
-                        {user.phone || "Not provided"}
-                      </div>
-                    </td>
-                    
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                        {user.status}
-                      </span>
-                    </td>
-                    
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {user.isVerified ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <CheckCircle size={14} className="mr-1" /> Verified
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          <AlertCircle size={14} className="mr-1" /> Pending
-                        </span>
-                      )}
-                    </td>
-                    
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(user.joinedDate)}
-                    </td>
-                    
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <select 
-                          value={user.status} 
-                          onChange={e => handleStatusChange(user.id, e.target.value)} 
-                          className="border border-gray-300 rounded-md text-sm py-1 px-2"
-                        >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="suspended">Suspended</option>
-                        </select>
-                        
-                        {!user.isVerified && (
-                          <button
-                            onClick={() => handleResendVerification(user.id)}
-                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded-md text-sm"
-                            title="Resend verification email"
-                          >
-                            <Mail size={16} />
-                          </button>
-                        )}
-                        
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                          </td>
+                          
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500 flex items-center">
+                              <Phone size={14} className="text-gray-400 mr-1" />
+                              {user.phone || "Not provided"}
+                            </div>
+                          </td>
+                          
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className={`h-2 w-2 rounded-full ${statusColors.dot} mr-2`}></div>
+                              <span className={`text-sm font-medium ${statusColors.text}`}>{user.status}</span>
+                            </div>
+                          </td>
+                          
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {user.isVerified ? (
+                              <span className="inline-flex items-center text-sm text-green-700">
+                                <CheckCircle size={14} className="mr-1" /> Verified
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center text-sm text-yellow-700">
+                                <AlertCircle size={14} className="mr-1" /> Pending
+                              </span>
+                            )}
+                          </td>
+                          
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatDate(user.joinedDate)}
+                          </td>
+                          
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="relative inline-block text-left">
+                              <button
+                                onClick={() => toggleStatusDropdown(user.id)}
+                                className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                              >
+                                Actions <ChevronDown size={14} className="ml-1" />
+                              </button>
+                              
+                              {isStatusDropdownOpen[user.id] && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                  <div className="py-1">
+                                    <button
+                                      onClick={() => handleStatusChange(user.id, 'active')}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      Set Active
+                                    </button>
+                                    <button
+                                      onClick={() => handleStatusChange(user.id, 'inactive')}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      Set Inactive
+                                    </button>
+                                    <button
+                                      onClick={() => handleStatusChange(user.id, 'suspended')}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      Set Suspended
+                                    </button>
+                                    {!user.isVerified && (
+                                      <button
+                                        onClick={() => handleResendVerification(user.id)}
+                                        className="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
+                                      >
+                                        Resend Verification
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
         
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Showing{' '}
-            <span className="font-medium">
-              {Math.min(filteredAndSortedUsers.length, 1)}
-            </span>{' '}
-            to{' '}
-            <span className="font-medium">{filteredAndSortedUsers.length}</span>{' '}
-            of <span className="font-medium">{users.length}</span> users
+            Showing {filteredAndSortedUsers.length} of {users.length} users
           </div>
-          <div className="flex space-x-2">
+          <div className="flex gap-2">
             <button 
               disabled 
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
               Previous
             </button>
             <button 
               disabled 
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
               Next
             </button>
