@@ -1,152 +1,338 @@
-import React, { useEffect } from 'react';
-import { DollarSign, ShoppingBag, Users, ArrowUpRight, ArrowDownRight, Percent, Loader } from 'lucide-react';
-import { useStatisticsStore } from '../stores/statisticsStore';
-const Dashboard = () => {
-  const {
-    stats,
-    salesData,
-    categoryData,
-    topProducts,
-    isLoading,
-    error,
-    fetchStatistics
-  } = useStatisticsStore();
-  useEffect(() => {
-    fetchStatistics();
-  }, [fetchStatistics]);
-  const getStatIcon = (id: string) => {
-    switch (id) {
-      case 'revenue':
-        return <DollarSign size={24} className="text-white" />;
-      case 'orders':
-        return <ShoppingBag size={24} className="text-white" />;
-      case 'customers':
-        return <Users size={24} className="text-white" />;
-      case 'refund':
-        return <Percent size={24} className="text-white" />;
+import React, { useEffect, useState } from 'react';
+import { useAuthStore } from '@/stores/authStore';
+import DashboardSkeleton from '@/components/loaders/DashboardSkeleton';
+import { 
+  Package, 
+  Edit3, 
+  TrendingUp, 
+  Clock, 
+  Star,
+  Calendar,
+  CheckCircle,
+  Award,
+  Activity,
+  Coffee
+} from 'lucide-react';
+
+interface User {
+  admin_id: number;
+  name: string;
+  email: string;
+  role: string;
+  permissions: string[];
+  phoneNumber: string;
+  updatedAt: string;
+  lastLogin: string;
+  avatar: string;
+}
+
+interface PersonalStats {
+  productsUpdated: number;
+  ordersProcessed: number;
+  tasksCompleted: number;
+  streak: number;
+}
+
+interface RecentActivity {
+  id: string;
+  action: string;
+  target: string;
+  time: string;
+  type: 'product' | 'order' | 'user' | 'system';
+}
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  progress?: number;
+  maxProgress?: number;
+}
+
+
+const Dashboard= () => {
+  const { user, isLoading } = useAuthStore();
+  const [currentUser, setCurrentUser] = useState<User | null>(user);
+  const [personalStats, setPersonalStats] = useState<PersonalStats>({
+    productsUpdated: 12,
+    ordersProcessed: 45,
+    tasksCompleted: 8,
+    streak: 5
+  });
+
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([
+    {
+      id: '1',
+      action: 'Updated product',
+      target: 'Chanel No. 5',
+      time: '2 hours ago',
+      type: 'product'
+    },
+    {
+      id: '2', 
+      action: 'Processed order',
+      target: '#ORD-1234',
+      time: '4 hours ago',
+      type: 'order'
+    },
+    {
+      id: '3',
+      action: 'Added new product',
+      target: 'Dior Sauvage',
+      time: '1 day ago',
+      type: 'product'
+    }
+  ]);
+
+  const [achievements, setAchievements] = useState<Achievement[]>([
+    {
+      id: '1',
+      title: 'Product Master',
+      description: 'Updated 10+ products this week',
+      icon: '📦',
+      unlocked: true
+    },
+    {
+      id: '2',
+      title: 'Early Bird',
+      description: '5 day login streak',
+      icon: '🌅',
+      unlocked: true
+    },
+    {
+      id: '3',
+      title: 'Order Ninja',
+      description: 'Process 50 orders',
+      icon: '🥷',
+      unlocked: false,
+      progress: 45,
+      maxProgress: 50
+    }
+  ]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const getMotivationalMessage = () => {
+    const messages = [
+      "You're crushing it today! 💪",
+      "Keep up the amazing work! ✨",
+      "Your dedication shows! 🌟",
+      "Making great progress! 🚀"
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'product':
+        return <Package size={16} className="text-blue-500" />;
+      case 'order':
+        return <CheckCircle size={16} className="text-green-500" />;
+      case 'user':
+        return <Edit3 size={16} className="text-purple-500" />;
       default:
-        return null;
+        return <Activity size={16} className="text-gray-500" />;
     }
   };
-  const getStatColor = (id: string) => {
-    switch (id) {
-      case 'revenue':
-        return 'bg-blue-500';
-      case 'orders':
-        return 'bg-green-500';
-      case 'customers':
-        return 'bg-purple-500';
-      case 'refund':
-        return 'bg-amber-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
+
+  const firstName = currentUser?.name.split(' ')[0];
+
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="text-gray-500">Loading dashboard data...</p>
-        </div>
-      </div>;
+    return <DashboardSkeleton />;
   }
-  if (error) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-red-50 p-4 rounded-lg">
-          <p className="text-red-800">{error}</p>
-          <button onClick={() => fetchStatistics()} className="mt-2 text-red-600 hover:text-red-500 font-medium text-sm">
-            Try again
-          </button>
-        </div>
-      </div>;
-  }
-  return <div className="space-y-6 animate-fadeIn">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-gray-500">
-          Welcome back to your perfume store admin
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map(stat => <div key={stat.id} className="bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-2 rounded-lg ${getStatColor(stat.id)}`}>
-                  {getStatIcon(stat.id)}
-                </div>
-                <span className={`flex items-center text-sm ${stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                  {stat.change > 0 ? '+' : ''}
-                  {stat.change}%
-                  {stat.trend === 'up' ? <ArrowUpRight size={16} className="ml-1" /> : <ArrowDownRight size={16} className="ml-1" />}
-                </span>
-              </div>
-              <h3 className="text-2xl font-bold">
-                {stat.id === 'revenue' ? '$' : ''}
-                {typeof stat.value === 'number' ? stat.value.toLocaleString(undefined, {
-              minimumFractionDigits: stat.id === 'refund' ? 1 : 0,
-              maximumFractionDigits: stat.id === 'refund' ? 1 : 0
-            }) : stat.value}
-                {stat.id === 'refund' ? '%' : ''}
-              </h3>
-              <p className="text-gray-500 text-sm">{stat.label}</p>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20 md:pb-6">
+      {/* Personal Header */}
+      <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-10">
+        <div className="px-4 py-6">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="relative">
+              <img
+                src={currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name|| "Anonymus" )}&background=4F46E5&color=fff&size=128`}
+                alt={currentUser?.name}
+                className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+              />
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
-          </div>)}
-      </div>
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">Recent Products</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Units Sold
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Revenue
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Growth
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {topProducts.map(product => <tr key={product.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {product.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.sales.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${product.revenue.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`flex items-center text-sm ${product.growth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {product.growth >= 0 ? <ArrowUpRight size={16} className="mr-1" /> : <ArrowDownRight size={16} className="mr-1" />}
-                      {Math.abs(product.growth)}%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 mr-3">
-                      Edit
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      Delete
-                    </button>
-                  </td>
-                </tr>)}
-            </tbody>
-          </table>
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                {getGreeting()}, {firstName}! 👋
+              </h1>
+              <p className="text-indigo-600 font-medium mt-1">
+                {getMotivationalMessage()}
+              </p>
+              <p className="text-sm text-gray-500 flex items-center mt-1">
+                <Award size={14} className="mr-1" />
+                {currentUser?.role} • Last login: {new Date(currentUser?.lastLogin || 0).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>;
+
+      <div className="px-4 py-6 space-y-6">
+        {/* Personal Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Package size={20} className="text-blue-600" />
+              </div>
+              <TrendingUp size={16} className="text-green-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{personalStats.productsUpdated}</h3>
+            <p className="text-sm text-gray-600">Products Updated</p>
+            <p className="text-xs text-green-600 font-medium mt-1">This week</p>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle size={20} className="text-green-600" />
+              </div>
+              <TrendingUp size={16} className="text-green-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{personalStats.ordersProcessed}</h3>
+            <p className="text-sm text-gray-600">Orders Processed</p>
+            <p className="text-xs text-green-600 font-medium mt-1">This month</p>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Edit3 size={20} className="text-purple-600" />
+              </div>
+              <Star size={16} className="text-yellow-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{personalStats.tasksCompleted}</h3>
+            <p className="text-sm text-gray-600">Tasks Done</p>
+            <p className="text-xs text-purple-600 font-medium mt-1">Today</p>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Coffee size={20} className="text-orange-600" />
+              </div>
+              <span className="text-2xl">🔥</span>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{personalStats.streak}</h3>
+            <p className="text-sm text-gray-600">Day Streak</p>
+            <p className="text-xs text-orange-600 font-medium mt-1">Keep going!</p>
+          </div>
+        </div>
+
+        {/* Recent Personal Activity */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center space-x-2">
+              <Activity size={20} className="text-indigo-600" />
+              <h2 className="font-semibold text-gray-900">Your Recent Activity</h2>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">What you've been working on</p>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {activity.action} <span className="text-indigo-600">{activity.target}</span>
+                    </p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Clock size={12} className="text-gray-400" />
+                      <p className="text-xs text-gray-500">{activity.time}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Personal Achievements */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center space-x-2">
+              <Award size={20} className="text-yellow-600" />
+              <h2 className="font-semibold text-gray-900">Your Achievements</h2>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">Celebrating your milestones</p>
+          </div>
+          <div className="p-4 space-y-3">
+            {achievements.map((achievement) => (
+              <div key={achievement.id} className={`flex items-center space-x-3 p-3 rounded-lg ${
+                achievement.unlocked 
+                  ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200' 
+                  : 'bg-gray-50 border border-gray-200'
+              }`}>
+                <div className="text-2xl">
+                  {achievement.unlocked ? achievement.icon : '🔒'}
+                </div>
+                <div className="flex-1">
+                  <p className={`font-medium ${
+                    achievement.unlocked ? 'text-gray-900' : 'text-gray-500'
+                  }`}>
+                    {achievement.title}
+                  </p>
+                  <p className="text-sm text-gray-600">{achievement.description}</p>
+                  {achievement.progress && (
+                    <div className="mt-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
+                          style={{ width: `${(achievement.progress / achievement.maxProgress!) * 100}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {achievement.progress}/{achievement.maxProgress}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {achievement.unlocked && (
+                  <CheckCircle size={20} className="text-green-500" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4">
+          <h3 className="font-semibold text-gray-900 mb-3">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button className="flex flex-col items-center space-y-2 p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors">
+              <Package size={20} className="text-indigo-600" />
+              <span className="text-sm font-medium text-gray-700">Add Product</span>
+            </button>
+            <button className="flex flex-col items-center space-y-2 p-3 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors">
+              <CheckCircle size={20} className="text-green-600" />
+              <span className="text-sm font-medium text-gray-700">Process Orders</span>
+            </button>
+            <button className="flex flex-col items-center space-y-2 p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors">
+              <Edit3 size={20} className="text-purple-600" />
+              <span className="text-sm font-medium text-gray-700">Update Inventory</span>
+            </button>
+            <button className="flex flex-col items-center space-y-2 p-3 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-colors">
+              <Calendar size={20} className="text-orange-600" />
+              <span className="text-sm font-medium text-gray-700">View Schedule</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
+
 export default Dashboard;

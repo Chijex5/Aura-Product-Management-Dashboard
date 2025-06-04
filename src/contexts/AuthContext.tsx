@@ -47,6 +47,7 @@ export function AuthProvider({
     verificationToken,
     error,
     setUser,
+    setActivityLogs,
     setToken,
     setIsAuthenticated,
     setIsLoading,
@@ -77,6 +78,7 @@ export function AuthProvider({
           // Real API call to validate token and get user data
           const response = await axiosInstance.get('/api/auth/me');
           setUser(response.data.admin);
+          setActivityLogs(response.data.activity_logs)
           setIsAuthenticated(true);
         } catch (err: any) {
           console.error('Auth validation error:', err.response?.data || err.message);
@@ -114,7 +116,8 @@ export function AuthProvider({
         return;
       }
       const token = response.data.access_token;
-      const userData = response.data.admin; // Make sure this matches backend response key
+      const userData = response.data.admin;
+      const activityLogData = response.data.activity_log;
 
       if (!token) {
         throw new Error('No token received from server');
@@ -122,6 +125,7 @@ export function AuthProvider({
       localStorage.setItem('authToken', token);
       setToken(token);
       setUser(userData);
+      setActivityLogs(activityLogData);
       setIsAuthenticated(true);
       navigate('/');
     } catch (err: any) {

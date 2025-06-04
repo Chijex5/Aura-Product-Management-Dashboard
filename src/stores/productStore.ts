@@ -273,7 +273,6 @@ export const useStore = create<StoreState>((set, get) => ({
       error: null
     });
     try {
-      // Replace with actual API call to upload image
       const formData = new FormData();
       formData.append('image', file);
       const response = await fetch('/api/upload', {
@@ -286,7 +285,6 @@ export const useStore = create<StoreState>((set, get) => ({
       });
       return data.imageUrl;
     } catch (error) {
-      // Handle error
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Failed to upload image'

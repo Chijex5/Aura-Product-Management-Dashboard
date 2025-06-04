@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, Bell, Settings, Search, ChevronDown, User } from 'lucide-react';
 import { useMobileMenu } from '../../contexts/MobileMenuContext';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 const Header = () => {
   const {
@@ -12,6 +13,7 @@ const Header = () => {
     user,
     isLoading
   } = useAuth();
+  const navigate = useNavigate();
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -30,7 +32,7 @@ const Header = () => {
           <ChevronDown size={16} className="ml-1 text-gray-500" />
         </div>;
     }
-    return <div className="flex items-center cursor-pointer">
+    return <div onClick={() => navigate('/account/profile')} className="flex items-center cursor-pointer">
         {user.avatar ? <img className="h-8 w-8 rounded-full object-cover" src={user.avatar} alt={user.name || 'User avatar'} onError={e => {
         e.target.onerror = null;
         e.target.src = 'https://via.placeholder.com/32';
