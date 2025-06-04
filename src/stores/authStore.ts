@@ -1,15 +1,30 @@
 // src/stores/authStore.ts
 import { create } from 'zustand';
-interface User {
+
+export interface User {
   admin_id: number;
   name: string;
   email: string;
   role: string;
   permissions: string[];
+  phoneNumber: string;
+  updatedAt: string;
+  lastLogin: string;
   avatar: string;
 }
+
+interface ActivityLog {
+  id: number;
+  action: string;
+  description: string;
+  timestamp: string;
+  type: string;
+  module: string;
+}
+
 interface AuthState {
   user: User | null;
+  activityLogs: ActivityLog[];
   token: string | null;
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
@@ -18,6 +33,7 @@ interface AuthState {
   verificationToken: string;
   error: string | null;
   setUser: (user: User | null) => void;
+  setActivityLogs: (logs: ActivityLog[]) => void;
   setToken: (token: string | null) => void;
   setIsCheckingAuth: (isCheckingAuth: boolean) => void;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -26,8 +42,10 @@ interface AuthState {
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
 }
+
 export const useAuthStore = create<AuthState>(set => ({
   user: null,
+  activityLogs: [],
   token: null,
   isAuthenticated: false,
   isCheckingAuth: false,
@@ -37,6 +55,9 @@ export const useAuthStore = create<AuthState>(set => ({
   error: null,
   setUser: user => set({
     user
+  }),
+  setActivityLogs: logs => set({
+    activityLogs: logs
   }),
   setToken: token => set({
     token
