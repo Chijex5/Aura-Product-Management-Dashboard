@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Filter, Mail, Phone, Calendar, AlertCircle, CheckCircle, User, Shield, X, ChevronDown, MoreHorizontal, List } from 'lucide-react';
 import { useUserApi } from '../hooks/useUserApi';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,7 +16,7 @@ const Users = () => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState({});
   const [isMobileView, setIsMobileView] = useState(false);
-  
+  const dropdownRef = useRef(null);
   // Detect mobile view
   useEffect(() => {
     const handleResize = () => {
@@ -31,6 +31,20 @@ const Users = () => {
   // Load users on component mount
   useEffect(() => {
     loadUsers(user?.permissions || []);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node | null;
+      if (dropdownRef.current && target && !(dropdownRef.current as HTMLElement).contains(target)) {
+        setIsStatusDropdownOpen(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   // Filter and sort users
@@ -524,7 +538,7 @@ const Users = () => {
                               </button>
                               
                               {isStatusDropdownOpen[user.id] && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                <div ref={dropdownRef} className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
                                   <div className="py-1">
                                     <button
                                       onClick={() => handleStatusChange(user.id, 'active')}

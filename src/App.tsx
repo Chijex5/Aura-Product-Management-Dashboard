@@ -11,6 +11,8 @@ import Statistics from './pages/Statistics';
 import Resources from './pages/Resources';
 import Layout from './components/layout/Layout';
 import Users from './pages/Users'
+import AdminProfile from './pages/AdminProfile';
+
 
 export function App() {
   return (
@@ -25,6 +27,15 @@ export function App() {
               <ProtectedRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            {/* Profile route */}
+            <Route path="/account/profile" element={
+              <ProtectedRoute>
+                <Layout>
+                  <AdminProfile />
                 </Layout>
               </ProtectedRoute>
             } />
