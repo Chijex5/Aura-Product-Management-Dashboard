@@ -115,9 +115,11 @@ export function AuthProvider({
         setVerificationToken(response.data.token);
         return;
       }
+      console.log(response.data)
       const token = response.data.access_token;
       const userData = response.data.admin;
-      const activityLogData = response.data.activity_log;
+      const activityLogData = response.data.activity_logs;
+      console.log('Activity Log Data:', activityLogData);
 
       if (!token) {
         throw new Error('No token received from server');
