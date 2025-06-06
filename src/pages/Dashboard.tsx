@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { ActivityLog } from '@/stores/authStore';
+import RecentActivity from '@/components/modals/ActivityModal';
 import DashboardSkeleton from '@/components/loaders/DashboardSkeleton';
 import { 
   Package, 
@@ -162,33 +163,6 @@ const Dashboard= () => {
     }
   ];
 
-  const achievements = [
-    {
-      id: '1',
-      title: 'Product Master',
-      description: 'Updated 10+ products this week',
-      icon: '📦',
-      unlocked: productUpdate >= 10,
-      progress: productUpdate,
-      maxProgress: 10
-    },
-    {
-      id: '2',
-      title: 'Early Bird',
-      description: '5 day login streak',
-      icon: '🌅',
-      unlocked: true
-    },
-    {
-      id: '3',
-      title: 'Order Ninja',
-      description: 'Process 50 orders',
-      icon: '🥷',
-      unlocked: false,
-      progress: 45,
-      maxProgress: 50
-    }
-  ];
 
   const getGreeting = () => {
   // Get current date to ensure same greeting all day
@@ -244,6 +218,158 @@ const Dashboard= () => {
   const greetingIndex = dateHash % greetings.length;
   return greetings[greetingIndex];
 };
+
+function calculateLoginStreak(activityLogs: ActivityLog[]) {
+  // Filter only LOGIN actions and extract unique dates
+  const loginDates = new Set<string>();
+
+  activityLogs.forEach(log => {
+    if (log.action === 'LOGIN') {
+      // Parse the timestamp and extract date (YYYY-MM-DD format)
+      const date = new Date(log.timestamp);
+      const dateStr = date.toISOString().split('T')[0];
+      loginDates.add(dateStr);
+    }
+  });
+  
+  // Get today's date
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  
+  // Always include today in the streak calculation
+  loginDates.add(todayStr);
+  
+  // Convert to sorted array (most recent first)
+  const sortedDates = Array.from(loginDates).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  
+  if (sortedDates.length === 0) {
+    return {
+      currentStreak: 1, // Today counts as 1
+      streakDates: [todayStr],
+      totalLoginDays: 0
+    };
+  }
+  
+  let streak = 0;
+  let streakDates = [];
+  
+  // Start from today and work backwards
+  let currentDate = new Date(todayStr);
+  
+  for (let i = 0; i < sortedDates.length; i++) {
+    const checkDateStr = currentDate.toISOString().split('T')[0];
+    
+    if (sortedDates.includes(checkDateStr)) {
+      streak++;
+      streakDates.push(checkDateStr);
+      // Move to previous day
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      // Streak is broken
+      break;
+    }
+  }
+  
+  return {
+    currentStreak: streak,
+    streakDates: streakDates.reverse(), // Show oldest to newest
+    totalLoginDays: loginDates.size - 1, // Subtract 1 because we added today
+    uniqueLoginDates: Array.from(loginDates).filter(date => date !== todayStr).sort()
+  };
+}
+
+// Alternative version that provides more detailed analysis
+// Extend ActivityLog interface to include optional isToday property
+interface ExtendedActivityLog extends ActivityLog {
+  isToday?: boolean;
+}
+
+function calculateDetailedLoginStreak(activityLogs: ActivityLog[]) {
+  // Group logins by date
+  const loginsByDate: { [key: string]: ExtendedActivityLog[] } = {};
+
+  activityLogs.forEach(log => {
+    if (log.action === 'LOGIN') {
+      const date = new Date(log.timestamp);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      if (!loginsByDate[dateStr]) {
+        loginsByDate[dateStr] = [];
+      }
+      loginsByDate[dateStr].push({
+        timestamp: log.timestamp,
+        description: log.description,
+        id: log.id,
+        action: log.action,
+        type: log.type,
+        module: log.module
+      });
+    }
+  });
+  
+  // Get today's date
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  
+  // Always count today as part of streak
+  if (!loginsByDate[todayStr]) {
+    loginsByDate[todayStr] = [{ 
+      timestamp: today.toISOString(), 
+      description: 'Today (counted for streak)',
+      id: 0,
+      action: 'LOGIN',
+      type: 'system',
+      module: 'AUTH',
+      isToday: true 
+    }];
+  }
+  
+  // Get all dates and sort them
+  const allDates = Object.keys(loginsByDate).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  
+  // Calculate current streak starting from today
+  let streak = 0;
+  let streakDates = [];
+  let currentDate = new Date(todayStr);
+  
+  while (true) {
+    const checkDateStr = currentDate.toISOString().split('T')[0];
+    
+    if (loginsByDate[checkDateStr]) {
+      streak++;
+      streakDates.push({
+        date: checkDateStr,
+        loginCount: loginsByDate[checkDateStr].length,
+        logins: loginsByDate[checkDateStr]
+      });
+      // Move to previous day
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      // Streak is broken
+      break;
+    }
+  }
+  
+  return {
+    currentStreak: streak,
+    streakDetails: streakDates.reverse(), // Show oldest to newest
+    totalLoginDays: Object.keys(loginsByDate).length,
+    allLoginDates: allDates,
+    loginsByDate: loginsByDate
+  };
+}
+
+
+const streak = calculateLoginStreak(activityLogs);
+// console.log(`Current login streak: ${streak.currentStreak} days`);
+// console.log('Streak dates:', streak.streakDates);
+
+// For detailed analysis:
+// const detailedStreak = calculateDetailedLoginStreak(activityLogs);
+// console.log(`Current login streak: ${detailedStreak.currentStreak} days`);
+// detailedStreak.streakDetails.forEach(day => {
+//   console.log(`${day.date}: ${day.loginCount} logins`);
+// });
 
 // Enhanced version with day-specific greetings
 const getFunGreeting = (firstName = '') => {
@@ -315,6 +441,36 @@ const getFunGreeting = (firstName = '') => {
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
+
+  const achievements = [
+    {
+      id: '1',
+      title: 'Product Master',
+      description: 'Updated 10+ products this week',
+      icon: '📦',
+      unlocked: productUpdate >= 10,
+      progress: productUpdate,
+      maxProgress: 10
+    },
+    {
+      id: '2',
+      title: 'Early Bird',
+      description: '5 day login streak',
+      icon: '🌅',
+      unlocked: streak.currentStreak >= 5,
+      progress: streak.currentStreak,
+      maxProgress: 5
+    },
+    {
+      id: '3',
+      title: 'Order Ninja',
+      description: 'Process 50 orders',
+      icon: '🥷',
+      unlocked: false,
+      progress: 45,
+      maxProgress: 50
+    }
+  ];
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -422,42 +578,14 @@ const getFunGreeting = (firstName = '') => {
               </div>
               <span className="text-2xl">🔥</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{personalStats.streak}</h3>
+            <h3 className="text-2xl font-bold text-gray-900">{streak.currentStreak}</h3>
             <p className="md:text-sm text-[0.8rem] text-gray-600">Day Streak</p>
             <p className="text-xs text-orange-600 font-medium mt-1">Keep going!</p>
           </div>
         </div>
 
         {/* Recent Personal Activity */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center space-x-2">
-              <Activity size={20} className="text-indigo-600" />
-              <h2 className="font-semibold text-gray-900">Your Recent Activity</h2>
-            </div>
-            <p className="text-sm text-gray-500 mt-1">What you've been working on</p>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="p-4 hover:bg-gray-50/50 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    {getActivityIcon(activity.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">
-                      {activity.action} <span className="text-indigo-600">{activity.target}</span>
-                    </p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Clock size={12} className="text-gray-400" />
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+         <RecentActivity activityLogs={activityLogs} />
 
         {/* Personal Achievements */}
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">

@@ -746,48 +746,47 @@ const AdminProfile: React.FC = () => {
 
           {/* Activity Tab */}
           {activeTab === 'activity' && (
-            <div className="p-4 md:p-6 max-w-4xl mx-auto">
-              <h2 className="text-2xl font-semibold mb-6 text-gray-900">Recent Activity</h2>
-              
-              <div className="space-y-4">
+            <div className="p-3 md:p-6 max-w-4xl mx-auto">
+              <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-gray-900">Recent Activity</h2> 
+              <div className="space-y-3 md:space-y-4">
                 {activities.map((activity) => {
                   const { mainAction, data } = parseDescription(activity.description);
                   
                   return (
                     <div key={activity.id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
-                      <div className="p-5">
+                      <div className="p-3 md:p-5">
                         {/* Header with action icon, main info, and timestamp */}
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-start space-x-3">
+                        <div className="flex items-start justify-between mb-2 md:mb-3">
+                          <div className="flex items-start space-x-2 md:space-x-3 flex-1 min-w-0">
                             <div className="flex-shrink-0 mt-0.5">
                               {getActionIcon(activity.action)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <h4 className="text-lg font-medium text-gray-900">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-1">
+                                <h4 className="text-base md:text-lg font-medium text-gray-900 truncate">
                                   {activity.action}
                                 </h4>
-                                <span className={`inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-full border ${getTypeStyles(activity.type)}`}>
+                                <span className={`inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-full border mt-1 sm:mt-0 self-start ${getTypeStyles(activity.type)}`}>
                                   {getTypeIcon(activity.type)}
                                   <span className="font-medium">{activity.type}</span>
                                 </span>
                               </div>
-                              <p className="text-gray-700 text-sm leading-relaxed">
+                              <p className="text-gray-700 text-xs md:text-sm leading-relaxed">
                                 {mainAction}
                               </p>
                             </div>
                           </div>
-                          <div className="flex-shrink-0 text-right">
-                            <span className="text-sm text-gray-500 font-medium">
+                          <div className="flex-shrink-0 text-right ml-2">
+                            <span className="text-xs md:text-sm text-gray-500 font-medium">
                               {formatDateTime(activity.timestamp)}
                             </span>
                           </div>
                         </div>
 
-                        {/* Module badge */}
-                        <div className="flex items-center justify-between">
+                        {/* Module badge and ID */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                           <div className="flex items-center space-x-2">
-                            <span className={`inline-flex items-center text-xs px-3 py-1 rounded-full border font-medium ${getModuleStyles(activity.module)}`}>
+                            <span className={`inline-flex items-center text-xs px-2 md:px-3 py-1 rounded-full border font-medium ${getModuleStyles(activity.module)}`}>
                               {activity.module}
                             </span>
                           </div>
@@ -800,14 +799,14 @@ const AdminProfile: React.FC = () => {
 
                         {/* Data section - collapsible or truncated for long data */}
                         {data && (
-                          <div className="mt-4 pt-3 border-t border-gray-100">
+                          <div className="mt-3 md:mt-4 pt-2 md:pt-3 border-t border-gray-100">
                             <details className="group">
                               <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-800 font-medium flex items-center space-x-1">
                                 <span>View Data</span>
                                 <span className="transition-transform group-open:rotate-90">▶</span>
                               </summary>
-                              <div className="mt-2 p-3 bg-gray-50 rounded border text-xs font-mono text-gray-700 overflow-x-auto">
-                                <pre className="whitespace-pre-wrap">{data}</pre>
+                              <div className="mt-2 p-2 md:p-3 bg-gray-50 rounded border text-xs font-mono text-gray-700 overflow-x-auto">
+                                <pre className="whitespace-pre-wrap break-words">{data}</pre>
                               </div>
                             </details>
                           </div>
@@ -818,10 +817,10 @@ const AdminProfile: React.FC = () => {
                 })}
                 
                 {activities.length === 0 && (
-                  <div className="text-center py-16">
-                    <Activity size={48} className="text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
-                    <p className="text-gray-500">Activity logs will appear here as actions are performed</p>
+                  <div className="text-center py-12 md:py-16">
+                    <Activity size={40} className="md:w-12 md:h-12 text-gray-400 mx-auto mb-3 md:mb-4" />
+                    <h3 className="text-base md:text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
+                    <p className="text-sm md:text-base text-gray-500 px-4">Activity logs will appear here as actions are performed</p>
                   </div>
                 )}
               </div>
