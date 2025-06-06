@@ -492,20 +492,24 @@ const Admins = () => {
                     <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={`w-full border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500`} />
                     {formErrors.email && <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Password {selectedAdmin && '(Leave blank to keep current)'}
-                    </label>
-                    <input type="password" name="password" value={formData.password} onChange={handleInputChange} className={`w-full border ${formErrors.password ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500`} />
-                    {formErrors.password && <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm Password
-                    </label>
-                    <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} className={`w-full border ${formErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500`} />
-                    {formErrors.confirmPassword && <p className="mt-1 text-sm text-red-600">{formErrors.confirmPassword}</p>}
-                  </div>
+                  {!selectedAdmin && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Password {selectedAdmin && '(Leave blank to keep current)'}
+                        </label>
+                        <input type="password" name="password" value={formData.password} onChange={handleInputChange} className={`w-full border ${formErrors.password ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500`} />
+                        {formErrors.password && <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Confirm Password
+                        </label>
+                        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} className={`w-full border ${formErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500`} />
+                        {formErrors.confirmPassword && <p className="mt-1 text-sm text-red-600">{formErrors.confirmPassword}</p>}
+                      </div>
+                    </>
+                  )}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Role

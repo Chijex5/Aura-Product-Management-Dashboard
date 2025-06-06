@@ -1,9 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { MobileMenuProvider } from './contexts/MobileMenuContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/auth/Login';
+import ResetPasswordPage from './pages/auth/ResetPasswordpage';
+import NotificationPage from './pages/NotificationPage';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Admins from './pages/Admins';
@@ -12,6 +14,19 @@ import Resources from './pages/Resources';
 import Layout from './components/layout/Layout';
 import Users from './pages/Users'
 import AdminProfile from './pages/AdminProfile';
+
+const VerificationRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token');
+
+  // Redirect to login if no token is provided
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 
 export function App() {
@@ -31,6 +46,13 @@ export function App() {
               </ProtectedRoute>
             } />
 
+            {/* Reset Password route */}
+            <Route path="/reset-password" element={
+              <VerificationRoute>             
+                <ResetPasswordPage />
+              </VerificationRoute>
+            } />
+            
             {/* Profile route */}
             <Route path="/account/profile" element={
               <ProtectedRoute>
@@ -72,6 +94,14 @@ export function App() {
               <ProtectedRoute>
                 <Layout>
                   <Resources />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <Layout>
+                  <NotificationPage />
                 </Layout>
               </ProtectedRoute>
             } />
