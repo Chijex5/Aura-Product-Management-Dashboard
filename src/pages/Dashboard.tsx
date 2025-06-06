@@ -379,7 +379,7 @@ const getFunGreeting = (firstName = '') => {
               )}
             </div>
             <h3 className="text-2xl font-bold text-gray-900">{productUpdate}</h3>
-            <p className="text-sm text-gray-600">Products Updated</p>
+            <p className="md:text-sm text-[0.8rem] text-gray-600">{`Product${productUpdate > 1 ? 's' : ''} Updated`}</p>
             <p className="text-xs text-green-600 font-medium mt-1">This week</p>
           </div>
 
@@ -395,7 +395,7 @@ const getFunGreeting = (firstName = '') => {
               )}
             </div>
             <h3 className="text-2xl font-bold text-gray-900">{personalStats.ordersProcessed}</h3>
-            <p className="text-sm text-gray-600">Orders Processed</p>
+            <p className="md:text-sm text-[0.8rem] text-gray-600">Orders Processed</p>
             <p className="text-xs text-green-600 font-medium mt-1">This month</p>
           </div>
 
@@ -411,7 +411,7 @@ const getFunGreeting = (firstName = '') => {
               )}
             </div>
             <h3 className="text-2xl font-bold text-gray-900">{productCreate}</h3>
-            <p className="text-sm text-gray-600">Products Created</p>
+            <p className="md:text-sm text-[0.8rem] text-gray-600">{`Product${productCreate > 1 ? 's' : ''} Created`}</p>
             <p className="text-xs text-purple-600 font-medium mt-1">This week</p>
           </div>
 
@@ -423,7 +423,7 @@ const getFunGreeting = (firstName = '') => {
               <span className="text-2xl">🔥</span>
             </div>
             <h3 className="text-2xl font-bold text-gray-900">{personalStats.streak}</h3>
-            <p className="text-sm text-gray-600">Day Streak</p>
+            <p className="md:text-sm text-[0.8rem] text-gray-600">Day Streak</p>
             <p className="text-xs text-orange-600 font-medium mt-1">Keep going!</p>
           </div>
         </div>
