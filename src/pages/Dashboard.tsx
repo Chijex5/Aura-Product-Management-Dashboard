@@ -349,13 +349,13 @@ const getFunGreeting = (firstName = '') => {
               <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <h1 className="text-l md:text-3xl font-bold text-gray-900">
                 {getFunGreeting(firstName)}
               </h1>
-              <p className="text-indigo-600 font-medium mt-1">
+              <p className="md:text-l text-sm text-indigo-600 font-medium mt-1">
                 {getMotivationalMessage()}
               </p>
-              <p className="text-sm text-gray-500 flex items-center mt-1">
+              <p className="text-[0.8rem] md:text-sm text-gray-500 flex items-center mt-1">
                 <Award size={14} className="mr-1" />
                 {currentUser?.role} • Last login: {new Date(currentUser?.lastLogin || 0).toLocaleDateString()}
               </p>
