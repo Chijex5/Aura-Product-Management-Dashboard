@@ -17,10 +17,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
   login: (email: string, password: string) => Promise<void>;
+  sendResetLink: (email: string) => Promise<{ success: boolean, message?: string, error?: any }>; 
   signup: (userData: any) => Promise<void>;
   verify: (verifyToken: string, password: string) => Promise<void>;
+  validateResetToken: (verificationToken: string) => Promise<{success: boolean, message?: string, admin?: User, error?: string }>;
   logout: () => void;
-  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  changePassword: (newPassword: string, token: string) => Promise<{ success: boolean, message?: string, error?: any }>;
   resetPassword: (email: string) => Promise<void>;
   isLoading: boolean;
   isNotVerified: boolean;
@@ -100,6 +102,53 @@ export function AuthProvider({
     };
     checkAuth();
   }, []);
+
+  const validateResetToken = async (verificationToken: string) => {
+    try {
+      setError(null);
+      setIsLoading(true);
+      const response = await axiosInstance.get(`/admin/validate-reset-token?token=${verificationToken}`);
+      
+      return {
+        success: true,
+        message: response.data.message,
+        user: response.data.admin,
+      };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Internal Server Error. Please try again.';
+      setError(errorMessage);
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    } finally{
+      setIsLoading(false);
+    }
+  };
+
+  const sendResetLink = async (email: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axiosInstance.post('/admin/send-reset-link', {
+        email
+      });
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Internal Server Error. Please try again.';
+      setError(errorMessage);
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
@@ -115,11 +164,9 @@ export function AuthProvider({
         setVerificationToken(response.data.token);
         return;
       }
-      console.log(response.data)
       const token = response.data.access_token;
       const userData = response.data.admin;
       const activityLogData = response.data.activity_logs;
-      console.log('Activity Log Data:', activityLogData);
 
       if (!token) {
         throw new Error('No token received from server');
@@ -204,27 +251,31 @@ export function AuthProvider({
     setIsAuthenticated(false);
     navigate('/login');
   };
-  const changePassword = async (oldPassword: string, newPassword: string) => {
+  const changePassword = async (newPassword: string, token: string) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Real API call for password change
-      await axiosInstance.post('/api/auth/change-password', {
-        oldPassword,
-        newPassword
+      const response = await axiosInstance.post('/admin/reset-password', {
+        token: token,
+        new_password: newPassword
       });
-
-      // Success message can be handled by the component
-    } catch (err: any) {
-      console.error('Password change error:', err.response?.data || err.message);
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Password change failed. Please try again.';
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Password reset failed. Please try again.';
       setError(errorMessage);
-      throw err;
+      return {
+        success: false,
+        error: errorMessage,
+      };
     } finally {
       setIsLoading(false);
     }
   };
+
   const resetPassword = async (email: string) => {
     try {
       setIsLoading(true);
@@ -255,6 +306,8 @@ export function AuthProvider({
     token,
     isAuthenticated,
     isCheckingAuth,
+    validateResetToken,
+    sendResetLink,
     isLoading,
     isNotVerified,
     verificationToken,

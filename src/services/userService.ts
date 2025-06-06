@@ -2,7 +2,7 @@ import axiosInstance from '../utils/axios';
 import { useUserStore } from '../stores/userStore';
 import canI from '../function/CanI';
 export interface UserData {
-  id: number;
+  user_id: number;
   name: string;
   email: string;
   phone: string;
