@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
+import { ActivityLog } from '@/stores/authStore';
 import DashboardSkeleton from '@/components/loaders/DashboardSkeleton';
 import { 
   Package, 
   Edit3, 
+  Plus,
   TrendingUp, 
+  TrendingDown,
   Clock, 
   Star,
   Calendar,
@@ -53,7 +56,7 @@ interface Achievement {
 
 
 const Dashboard= () => {
-  const { user, isLoading } = useAuthStore();
+  const { user, isLoading, activityLogs } = useAuthStore();
   const [currentUser, setCurrentUser] = useState<User | null>(user);
   const [personalStats, setPersonalStats] = useState<PersonalStats>({
     productsUpdated: 12,
@@ -62,7 +65,80 @@ const Dashboard= () => {
     streak: 5
   });
 
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([
+  const getLastWeekLogs = (activityLogs: ActivityLog[]) => {
+  // Get current date
+  const now = new Date();
+  
+  // Get the start of this week (Sunday at 00:00:00)
+  const startOfThisWeek = new Date(now);
+  startOfThisWeek.setDate(now.getDate() - now.getDay());
+  startOfThisWeek.setHours(0, 0, 0, 0);
+  
+  // Get the start of last week (7 days before start of this week)
+  const startOfLastWeek = new Date(startOfThisWeek);
+  startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+  
+  // Get the end of last week (1 millisecond before start of this week)
+  const endOfLastWeek = new Date(startOfThisWeek.getTime() - 1);
+  
+  return activityLogs.filter(log => {
+    try {
+      // Parse the timestamp string
+      const logDate = new Date(log.timestamp);
+      
+      // Check if the date is valid and within last week
+      return logDate >= startOfLastWeek && logDate <= endOfLastWeek;
+    } catch (error) {
+      // If timestamp parsing fails, exclude the log
+      console.warn('Invalid timestamp format:', log.timestamp);
+      return false;
+    }
+  });
+};
+
+  const getThisWeekLogs = (activityLogs: ActivityLog[]) => {
+    // Get current date
+    const now = new Date();
+    
+    // Get the start of this week (Sunday at 00:00:00)
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    // Get the end of this week (Saturday at 23:59:59)
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+    return activityLogs.filter(log => {
+      try {
+        // Parse the timestamp string
+        const logDate = new Date(log.timestamp);
+        
+        // Check if the date is valid and within this week
+        return logDate >= startOfWeek && logDate <= endOfWeek;
+      } catch (error) {
+        // If timestamp parsing fails, exclude the log
+        console.warn('Invalid timestamp format:', log.timestamp);
+        return false;
+      }
+    });
+  };
+  const thisWeekLogs = getThisWeekLogs(activityLogs);
+  const lastWeekLogs = getLastWeekLogs(activityLogs);
+
+  const productUpdate = thisWeekLogs.filter(log => log.module.toUpperCase() === 'PRODUCT' && log.action.toUpperCase() === 'UPDATE').length;
+  const lastWeekUpdate = lastWeekLogs.filter(log => log.module.toUpperCase() === 'PRODUCT' && log.action.toUpperCase() === 'UPDATE').length;
+
+  const productCreate = thisWeekLogs.filter(log => log.module.toUpperCase() === 'PRODUCT' && log.action.toUpperCase() === 'CREATE').length;
+  const lastWeekCreate = lastWeekLogs.filter(log => log.module.toUpperCase() === 'PRODUCT' && log.action.toUpperCase() === 'CREATE').length;
+
+
+  const isFallingBehind = (thisWeek: number, lastWeek: number) => {
+    return thisWeek <= lastWeek;
+  };
+
+  const recentActivity = [
     {
       id: '1',
       action: 'Updated product',
@@ -84,15 +160,17 @@ const Dashboard= () => {
       time: '1 day ago',
       type: 'product'
     }
-  ]);
+  ];
 
-  const [achievements, setAchievements] = useState<Achievement[]>([
+  const achievements = [
     {
       id: '1',
       title: 'Product Master',
       description: 'Updated 10+ products this week',
       icon: '📦',
-      unlocked: true
+      unlocked: productUpdate >= 10,
+      progress: productUpdate,
+      maxProgress: 10
     },
     {
       id: '2',
@@ -110,7 +188,7 @@ const Dashboard= () => {
       progress: 45,
       maxProgress: 50
     }
-  ]);
+  ];
 
   const getGreeting = () => {
   // Get current date to ensure same greeting all day
@@ -294,9 +372,13 @@ const getFunGreeting = (firstName = '') => {
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Package size={20} className="text-blue-600" />
               </div>
-              <TrendingUp size={16} className="text-green-500" />
+              {isFallingBehind(productUpdate, lastWeekUpdate) ? (
+                <TrendingDown size={16} className="text-red-500" />
+              ) : (
+                <TrendingUp size={16} className="text-green-500" />
+              )}
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{personalStats.productsUpdated}</h3>
+            <h3 className="text-2xl font-bold text-gray-900">{productUpdate}</h3>
             <p className="text-sm text-gray-600">Products Updated</p>
             <p className="text-xs text-green-600 font-medium mt-1">This week</p>
           </div>
@@ -306,7 +388,11 @@ const getFunGreeting = (firstName = '') => {
               <div className="p-2 bg-green-100 rounded-lg">
                 <CheckCircle size={20} className="text-green-600" />
               </div>
-              <TrendingUp size={16} className="text-green-500" />
+              {isFallingBehind(productUpdate, lastWeekUpdate) ? (
+                <TrendingDown size={16} className="text-red-500" />
+              ) : (
+                <TrendingUp size={16} className="text-green-500" />
+              )}
             </div>
             <h3 className="text-2xl font-bold text-gray-900">{personalStats.ordersProcessed}</h3>
             <p className="text-sm text-gray-600">Orders Processed</p>
@@ -316,13 +402,17 @@ const getFunGreeting = (firstName = '') => {
           <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <Edit3 size={20} className="text-purple-600" />
+                <Plus size={20} className="text-purple-600" />
               </div>
-              <Star size={16} className="text-yellow-500" />
+              {isFallingBehind(productCreate, lastWeekCreate) ? (
+                <TrendingDown size={16} className="text-red-500" />
+              ) : (
+                <TrendingUp size={16} className="text-green-500" />
+              )}
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{personalStats.tasksCompleted}</h3>
-            <p className="text-sm text-gray-600">Tasks Done</p>
-            <p className="text-xs text-purple-600 font-medium mt-1">Today</p>
+            <h3 className="text-2xl font-bold text-gray-900">{productCreate}</h3>
+            <p className="text-sm text-gray-600">Products Created</p>
+            <p className="text-xs text-purple-600 font-medium mt-1">This week</p>
           </div>
 
           <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">

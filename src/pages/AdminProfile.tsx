@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';;
 import { 
   User, 
@@ -13,11 +13,17 @@ import {
   Check,
   AlertTriangle,
   Clock,
-  Settings,
+  Plus,
   Phone,
   Mail,
   Calendar,
-  MapPin,
+  Edit3,
+  Trash2,
+  LogIn,
+  Info,
+  AlertCircle,
+  CheckCircle,
+
   Briefcase
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -36,15 +42,6 @@ interface AdminProfile {
   joinDate: string;
   lastLogin?: string;
   status: 'active' | 'inactive';
-}
-
-interface ActivityLog {
-  id: number;
-  action: string;
-  description: string;
-  timestamp: string;
-  type: string;
-  module: string;
 }
 
 interface PasswordFormData {
@@ -70,27 +67,6 @@ interface ProfileFormErrors {
   email?: string;
   phoneNumber?: string;
 }
-
-interface TabProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
-
-// Mock data - replace with actual API calls
-const mockProfile: AdminProfile = {
-  id: '1',
-  name: 'John Doe',
-  email: 'john.doe@company.com',
-  role: 'Product Manager',
-  permissions: ['products.view', 'products.edit', 'products.create', 'products.delete', 'products.inventory', 'products.pricing'],
-  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-  phone: '+1 (555) 123-4567',
-  department: 'Product Management',
-  location: 'New York, NY',
-  joinDate: '2023-01-15',
-  lastLogin: '2024-01-20T10:30:00Z',
-  status: 'active'
-};
 
 const permissionCategories = {
   products: {
@@ -146,7 +122,7 @@ const permissionCategories = {
 const AdminProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('profile');
   const { user, setUser, activityLogs } = useAuthStore();
-  const [activities, setActivities] = useState<ActivityLog[]>(activityLogs);
+  const activities = activityLogs;
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showPasswordForm, setShowPasswordForm] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -183,6 +159,74 @@ const AdminProfile: React.FC = () => {
       <span className="hidden md:inline">{label}</span>
     </button>
   );
+
+  const getActionIcon = (action: string) => {
+    switch (action.toUpperCase()) {
+      case 'CREATE':
+        return <Plus size={20} className="text-green-600" />;
+      case 'UPDATE':
+        return <Edit3 size={20} className="text-blue-600" />;
+      case 'DELETE':
+        return <Trash2 size={20} className="text-red-600" />;
+      case 'LOGIN':
+        return <LogIn size={20} className="text-purple-600" />;
+      default:
+        return <Activity size={20} className="text-gray-600" />;
+    }
+  };
+
+  // Get icon and styling based on severity type
+  const getTypeIcon = (type: string) => {
+    switch (type.toUpperCase()) {
+      case 'SUCCESS':
+        return <CheckCircle size={16} className="text-green-600" />;
+      case 'WARNING':
+        return <AlertTriangle size={16} className="text-yellow-600" />;
+      case 'ERROR':
+        return <AlertCircle size={16} className="text-red-600" />;
+      case 'INFO':
+      default:
+        return <Info size={16} className="text-blue-600" />;
+    }
+  };
+
+  // Get styling classes for type badge
+  const getTypeStyles = (type: string) => {
+    switch (type.toUpperCase()) {
+      case 'SUCCESS':
+        return 'bg-green-100 text-green-700 border-green-200';
+      case 'WARNING':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'ERROR':
+        return 'bg-red-100 text-red-700 border-red-200';
+      case 'INFO':
+      default:
+        return 'bg-blue-100 text-blue-700 border-blue-200';
+    }
+  };
+
+  // Get module styling
+  const getModuleStyles = (module: string) => {
+    switch (module.toUpperCase()) {
+      case 'PRODUCT':
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'ADMIN':
+        return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+      case 'USER':
+        return 'bg-teal-100 text-teal-700 border-teal-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  // Parse and format the description to extract main action and data
+  const parseDescription = (description: string) => {
+    const parts = description.split(' | Data: ');
+    const mainAction = parts[0];
+    const data = parts[1] || '';
+    
+    return { mainAction, data };
+  };
 
   // Handlers
   const handleProfileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,16 +306,6 @@ const AdminProfile: React.FC = () => {
       toast.error('Failed to change password');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const getActivityIcon = (type: ActivityLog['type']) => {
-    switch (type) {
-      case 'create': return <span className="w-2 h-2 bg-green-500 rounded-full"></span>;
-      case 'update': return <span className="w-2 h-2 bg-blue-500 rounded-full"></span>;
-      case 'delete': return <span className="w-2 h-2 bg-red-500 rounded-full"></span>;
-      case 'login': return <span className="w-2 h-2 bg-purple-500 rounded-full"></span>;
-      default: return <span className="w-2 h-2 bg-gray-500 rounded-full"></span>;
     }
   };
 
@@ -712,46 +746,82 @@ const AdminProfile: React.FC = () => {
 
           {/* Activity Tab */}
           {activeTab === 'activity' && (
-            <div className="p-4 md:p-6">
-              <h2 className="text-xl font-semibold mb-6">Recent Activity</h2>
+            <div className="p-4 md:p-6 max-w-4xl mx-auto">
+              <h2 className="text-2xl font-semibold mb-6 text-gray-900">Recent Activity</h2>
               
               <div className="space-y-4">
-                {activities.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-shrink-0 mt-1">
-                      {getActivityIcon(activity.type)}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium text-gray-900">{activity.action}</h4>
-                        <span className="text-xs text-gray-500">{formatDateTime(activity.timestamp)}</span>
+                {activities.map((activity) => {
+                  const { mainAction, data } = parseDescription(activity.description);
+                  
+                  return (
+                    <div key={activity.id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
+                      <div className="p-5">
+                        {/* Header with action icon, main info, and timestamp */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 mt-0.5">
+                              {getActionIcon(activity.action)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <h4 className="text-lg font-medium text-gray-900">
+                                  {activity.action}
+                                </h4>
+                                <span className={`inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-full border ${getTypeStyles(activity.type)}`}>
+                                  {getTypeIcon(activity.type)}
+                                  <span className="font-medium">{activity.type}</span>
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm leading-relaxed">
+                                {mainAction}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <span className="text-sm text-gray-500 font-medium">
+                              {formatDateTime(activity.timestamp)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Module badge */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center text-xs px-3 py-1 rounded-full border font-medium ${getModuleStyles(activity.module)}`}>
+                              {activity.module}
+                            </span>
+                          </div>
+                          
+                          {/* Show ID for reference */}
+                          <span className="text-xs text-gray-400 font-mono">
+                            ID: {activity.id}
+                          </span>
+                        </div>
+
+                        {/* Data section - collapsible or truncated for long data */}
+                        {data && (
+                          <div className="mt-4 pt-3 border-t border-gray-100">
+                            <details className="group">
+                              <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-800 font-medium flex items-center space-x-1">
+                                <span>View Data</span>
+                                <span className="transition-transform group-open:rotate-90">▶</span>
+                              </summary>
+                              <div className="mt-2 p-3 bg-gray-50 rounded border text-xs font-mono text-gray-700 overflow-x-auto">
+                                <pre className="whitespace-pre-wrap">{data}</pre>
+                              </div>
+                            </details>
+                          </div>
+                        )}
                       </div>
-                      
-                      <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                      
-                      <div className="flex items-center space-x-4 mt-2">
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {activity.module}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          activity.type === 'create' ? 'bg-green-100 text-green-700' :
-                          activity.type === 'update' ? 'bg-blue-100 text-blue-700' :
-                          activity.type === 'delete' ? 'bg-red-100 text-red-700' :
-                          activity.type === 'login' ? 'bg-purple-100 text-purple-700' :
-                          'bg-gray-100 text-gray-700'
-                        }`}>
-                          {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
-                        </span>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 
                 {activities.length === 0 && (
-                  <div className="text-center py-8">
-                    <Activity size={48} className="text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">No recent activity</p>
+                  <div className="text-center py-16">
+                    <Activity size={48} className="text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
+                    <p className="text-gray-500">Activity logs will appear here as actions are performed</p>
                   </div>
                 )}
               </div>

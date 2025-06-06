@@ -13,7 +13,7 @@ export interface User {
   avatar: string;
 }
 
-interface ActivityLog {
+export interface ActivityLog {
   id: number;
   action: string;
   description: string;
@@ -22,7 +22,7 @@ interface ActivityLog {
   module: string;
 }
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   activityLogs: ActivityLog[];
   token: string | null;
