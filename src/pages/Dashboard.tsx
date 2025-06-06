@@ -113,11 +113,120 @@ const Dashboard= () => {
   ]);
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
+  // Get current date to ensure same greeting all day
+  const today = new Date().toDateString();
+  const hour = new Date().getHours();
+  
+  // Create a simple hash from today's date for consistent randomization
+  const dateHash = today.split('').reduce((hash, char) => {
+    return hash + char.charCodeAt(0);
+  }, 0);
+  
+  let greetings = [];
+  
+  if (hour < 12) {
+    // Morning greetings
+    greetings = [
+      'Good morning',
+      'Rise and shine',
+      'Morning sunshine',
+      'Wakey wakey',
+      'Fresh start',
+      'New day energy',
+      'Bright and early',
+      'Morning champion'
+    ];
+  } else if (hour < 17) {
+    // Afternoon greetings
+    greetings = [
+      'Good afternoon',
+      'Afternoon delight',
+      'Midday magic',
+      'Sunny afternoon',
+      'Afternoon warrior',
+      'Peak performance time',
+      'Afternoon excellence',
+      'Power hour'
+    ];
+  } else {
+    // Evening greetings
+    greetings = [
+      'Good evening',
+      'Evening star',
+      'Twilight time',
+      'Evening excellence',
+      'Sunset vibes',
+      'Evening champion',
+      'Night owl mode',
+      'Evening energy'
+    ];
+  }
+  
+  // Use date hash to pick same greeting all day
+  const greetingIndex = dateHash % greetings.length;
+  return greetings[greetingIndex];
+};
+
+// Enhanced version with day-specific greetings
+const getFunGreeting = (firstName = '') => {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const hour = today.getHours();
+  const dateHash = today.toDateString().split('').reduce((hash, char) => {
+    return hash + char.charCodeAt(0);
+  }, 0);
+  
+  let specialGreetings = [];
+  
+  // Day-specific greetings
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const daySpecific = [
+    'Lazy Sunday', 'Manic Monday', 'Terrific Tuesday', 'Wonderful Wednesday', 
+    'Thrilling Thursday', 'Fantastic Friday', 'Super Saturday'
+  ];
+  
+  if (hour < 12) {
+    specialGreetings = [
+      `Happy ${dayNames[dayOfWeek]}`,
+      `${daySpecific[dayOfWeek]} vibes`,
+      `Welcome back`,
+      `Ready to conquer`,
+      `Let's make magic`,
+      `Time to shine`,
+      `Another amazing day`,
+      `Fresh possibilities`
+    ];
+  } else if (hour < 17) {
+    specialGreetings = [
+      `Happy ${dayNames[dayOfWeek]}`,
+      `Welcome back`,
+      `Crushing this ${dayNames[dayOfWeek]}`,
+      `Midday momentum`,
+      `Keep the energy up`,
+      `Afternoon awesome`,
+      `Still going strong`,
+      `Powering through`
+    ];
+  } else {
+    specialGreetings = [
+      `Happy ${dayNames[dayOfWeek]} evening`,
+      `Welcome back`,
+      `Finishing strong`,
+      `Evening productivity`,
+      `Winding down well`,
+      `Almost there`,
+      `End on a high note`,
+      `Evening excellence`
+    ];
+  }
+  
+  const greetingIndex = dateHash % specialGreetings.length;
+  const greeting = specialGreetings[greetingIndex];
+  
+  return firstName ? `${greeting}, ${firstName}!` : `${greeting}!`;
+};
+
+// "Welcome back!" (no name needed)
 
   const getMotivationalMessage = () => {
     const messages = [
@@ -163,7 +272,7 @@ const Dashboard= () => {
             </div>
             <div className="flex-1">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                {getGreeting()}, {firstName}! 👋
+                {getFunGreeting(firstName)}
               </h1>
               <p className="text-indigo-600 font-medium mt-1">
                 {getMotivationalMessage()}
