@@ -50,6 +50,7 @@ export function AuthProvider({
     error,
     setUser,
     setActivityLogs,
+    setNotifications,
     setToken,
     setIsAuthenticated,
     setIsLoading,
@@ -81,6 +82,7 @@ export function AuthProvider({
           const response = await axiosInstance.get('/api/auth/me');
           setUser(response.data.admin);
           setActivityLogs(response.data.activity_logs)
+          setNotifications(response.data.notifications || []);
           setIsAuthenticated(true);
         } catch (err: any) {
           console.error('Auth validation error:', err.response?.data || err.message);
@@ -175,6 +177,7 @@ export function AuthProvider({
       setToken(token);
       setUser(userData);
       setActivityLogs(activityLogData);
+      setNotifications(response.data.notifications || []);
       setIsAuthenticated(true);
       navigate('/');
     } catch (err: any) {

@@ -33,6 +33,7 @@ const Users = () => {
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isDropLoading, setIsDropLoading] = useState<{id: number | null, loading: boolean, type: string}>({id: null, loading: false, type: ''});
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [sortBy, setSortBy] = useState('joined');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -99,6 +100,7 @@ const Users = () => {
 
   const handleStatusChange = async (userId: number, newStatus: string) => {
     try {
+      setIsDropLoading({ id: userId, loading: true, type: newStatus });
       const response = await updateUserStatus(userId, newStatus, user?.permissions || []);
       if (response.success) {
         toast.success(response.message);
@@ -108,6 +110,8 @@ const Users = () => {
       }
     } catch (error) {
       toast.error('Failed to update user status');
+    } finally {
+      setIsDropLoading({ id: null, loading: false, type: '' });
     }
     
     setActiveDropdown(null);
@@ -115,6 +119,7 @@ const Users = () => {
   
   const handleResendVerification = async (userId: number) => {
     try {
+      setIsDropLoading({ id: userId, loading: true, type: 'verification' });
       const response = await resendVerification(userId, user?.permissions || []);
       if (response.success) {
         toast.success('Verification email sent successfully');
@@ -123,6 +128,8 @@ const Users = () => {
       }
     } catch (error) {
       toast.error('Failed to resend verification email');
+    } finally {
+      setIsDropLoading({ id: null, loading: false, type: '' });
     }
     
     setActiveDropdown(null);
@@ -470,34 +477,38 @@ const Users = () => {
                         onClick={() => {
                           handleStatusChange(userItem.user_id, 'active');
                         }}
+                        disabled={isDropLoading.id === userItem.user_id && isDropLoading.loading}
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
                       >
                         <UserCheck size={16} className="mr-3" />
-                        Set Active
+                        {isDropLoading.id === userItem.user_id && isDropLoading.loading && isDropLoading.type === 'active' ? 'Loading...' : 'Set Active'}
                       </button>
                       <button
                         onClick={() => handleStatusChange(userItem.user_id, 'inactive')}
+                        disabled={isDropLoading.id === userItem.user_id && isDropLoading.loading}
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
                         <UserX size={16} className="mr-3" />
-                        Set Inactive
+                        {isDropLoading.id === userItem.user_id && isDropLoading.loading && isDropLoading.type === 'inactive' ? 'Loading...' : 'Set Inactive'}
                       </button>
                       <button
                         onClick={() => handleStatusChange(userItem.user_id, 'suspended')}
+                        disabled={isDropLoading.id === userItem.user_id && isDropLoading.loading}
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors"
                       >
                         <Shield size={16} className="mr-3" />
-                        Set Suspended
+                        {isDropLoading.id === userItem.user_id && isDropLoading.loading && isDropLoading.type === 'suspended' ? 'Loading...' : 'Set Suspended'}
                       </button>
                       {!userItem.isVerified && (
                         <>
                           <div className="border-t border-gray-100 my-1"></div>
                           <button
                             onClick={() => handleResendVerification(userItem.user_id)}
+                            disabled={isDropLoading.id === userItem.user_id && isDropLoading.loading}
                             className="flex items-center w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
                           >
                             <Mail size={16} className="mr-3" />
-                            Resend Verification
+                            {isDropLoading.id === userItem.user_id && isDropLoading.loading && isDropLoading.type === 'verification' ? 'Loading...' : 'Resend Verification'}
                           </button>
                         </>
                       )}

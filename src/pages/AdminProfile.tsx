@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';;
+import SelfService from '@/services/selfService';
 import { 
   User, 
   Shield, 
@@ -267,23 +268,37 @@ const AdminProfile: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const hasChanged = () => {
+    return (
+      profileForm.name !== user?.name ||
+      profileForm.phoneNumber !== user?.phoneNumber
+    );
+  };
+
   const handleSaveProfile = async () => {
     if (!validateProfileForm()) return;
     
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
       if (user) {
+        const response = await SelfService.updateSelf({
+          name: profileForm.name,
+          phoneNumber: profileForm.phoneNumber || '',
+        });
+        if (!response.success) {
+          toast.error(response.message || 'Failed to update profile');
+          return;
+        }
+        toast.success(response.message || 'Profile updated successfully');
         setUser({
           ...user,
           name: profileForm.name,
           email: profileForm.email,
           phoneNumber: profileForm.phoneNumber || ''
         });
-      }
-      
+        
+      }     
       setIsEditing(false);
-      toast.success('Profile updated successfully');
     } catch (error) {
       toast.error('Failed to update profile');
     } finally {
@@ -406,7 +421,7 @@ const AdminProfile: React.FC = () => {
                     </button>
                     <button
                       onClick={handleSaveProfile}
-                      disabled={isLoading}
+                      disabled={isLoading || !hasChanged()}
                       className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                     >
                       <Save size={16} />
@@ -445,6 +460,7 @@ const AdminProfile: React.FC = () => {
                         type="email"
                         name="email"
                         value={profileForm.email}
+                        disabled={true}
                         onChange={handleProfileInputChange}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           profileErrors.email ? 'border-red-500' : 'border-gray-300'

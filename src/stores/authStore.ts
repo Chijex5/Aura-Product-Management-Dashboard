@@ -22,9 +22,21 @@ export interface ActivityLog {
   module: string;
 }
 
+export interface Notification {
+  id: number;
+  type: 'info' | 'success' | 'warning' | 'error' | 'achievement' | 'order' | 'product' | 'system';
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  priority: 'low' | 'medium' | 'high';
+  actionRequired?: boolean;
+}
+
 export interface AuthState {
   user: User | null;
   activityLogs: ActivityLog[];
+  notifications: Notification[];
   token: string | null;
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
@@ -34,6 +46,7 @@ export interface AuthState {
   error: string | null;
   setUser: (user: User | null) => void;
   setActivityLogs: (logs: ActivityLog[]) => void;
+  setNotifications: (notifications: Notification[]) => void;
   setToken: (token: string | null) => void;
   setIsCheckingAuth: (isCheckingAuth: boolean) => void;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -46,6 +59,7 @@ export interface AuthState {
 export const useAuthStore = create<AuthState>(set => ({
   user: null,
   activityLogs: [],
+  notifications: [],
   token: null,
   isAuthenticated: false,
   isCheckingAuth: false,
@@ -58,6 +72,9 @@ export const useAuthStore = create<AuthState>(set => ({
   }),
   setActivityLogs: logs => set({
     activityLogs: logs
+  }),
+  setNotifications: notifications => set({
+    notifications
   }),
   setToken: token => set({
     token
