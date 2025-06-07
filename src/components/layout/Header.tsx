@@ -3,6 +3,7 @@ import { Menu, Bell, Settings, Search, ChevronDown, User } from 'lucide-react';
 import { useMobileMenu } from '../../contexts/MobileMenuContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 const Header = () => {
   const {
     toggleMenu,
@@ -10,9 +11,14 @@ const Header = () => {
     sidebarOpen
   } = useMobileMenu();
   const {
+    notifications,
+  } = useAuthStore();
+  const {
     user,
     isLoading
   } = useAuth();
+  const unreadNotifications = notifications.filter(notification => !notification.read).length;
+  const hasUnreadNotifications = unreadNotifications > 0;
   const navigate = useNavigate();
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -61,12 +67,16 @@ const Header = () => {
       
       <div className="flex items-center space-x-4">
         <button 
-          className="p-1 rounded-full text-gray-400 hover:bg-gray-100 relative"
+          className="p-1 flex space-between items-center rounded-full text-indigo-400 hover:bg-gray-100 relative"
           onClick={() => navigate('/notifications')}
           aria-label='Notifications'
         >
           <Bell size={20} />
-          <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-1 ring-white"></span>
+          {hasUnreadNotifications && (
+            <div className="ml-2 bg-indigo-100 text-indigo-700 text-xs rounded-full px-2 py-1">
+              {unreadNotifications}
+            </div>
+          )}
         </button>
         
         {renderUserProfile()}

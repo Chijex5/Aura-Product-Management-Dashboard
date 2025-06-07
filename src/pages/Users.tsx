@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { 
   Search, 
   Filter, 
@@ -11,16 +11,12 @@ import {
   Shield, 
   X, 
   ChevronDown, 
-  MoreHorizontal, 
-  List,
+  MoreHorizontal,
   Users as UsersIcon,
   UserCheck,
   UserX,
-  Clock,
   Eye,
-  Settings,
-  TrendingUp,
-  Trash2
+  TrendingUp
 } from 'lucide-react';
 import { useUserApi } from '../hooks/useUserApi';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,7 +24,7 @@ import { toast } from 'react-hot-toast';
 
 const Users = () => {
   const { user } = useAuth();
-  const { users, isLoading, error, loadUsers, updateUserStatus, resendVerification } = useUserApi();
+  const { users, isLoading, loadUsers, updateUserStatus, resendVerification } = useUserApi();
   
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,21 +34,10 @@ const Users = () => {
   const [sortBy, setSortBy] = useState('joined');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-  const [isMobileView, setIsMobileView] = useState(false);
   
   // Create a ref for each dropdown menu
   const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
-  // Detect mobile view
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileView(window.innerWidth < 768);
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Load users on component mount
   useEffect(() => {
