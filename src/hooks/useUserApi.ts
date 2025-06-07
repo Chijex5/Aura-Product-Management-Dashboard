@@ -30,7 +30,6 @@ export const useUserApi = () => {
   };
   const updateUserStatus = async (userId: number, status: string, permissions: string[]) => {
     try {
-      setIsLoading(true);
       const response = await UserService.updateUserStatus(userId, status, permissions);
       if (response.success) {
         await loadUsers(permissions);
@@ -43,13 +42,10 @@ export const useUserApi = () => {
         success: false,
         message: 'Failed to update user status'
       };
-    } finally {
-      setIsLoading(false);
-    }
+    } 
   };
   const resendVerification = async (userId: number, permissions: string[]) => {
     try {
-      setIsLoading(true);
       const response = await UserService.resendVerification(userId, permissions);
       if (response.success) {
         await loadUsers(permissions);
@@ -62,8 +58,6 @@ export const useUserApi = () => {
         success: false,
         message: 'Failed to resend verfication Email'
       };
-    } finally {
-      setIsLoading(false);
     }
   };
 

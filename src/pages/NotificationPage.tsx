@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAuthStore } from '@/stores/authStore';
+import { Notification } from '@/stores/authStore';
 import { 
   Bell, 
   Package, 
@@ -20,97 +22,9 @@ import {
   Calendar
 } from 'lucide-react';
 
-interface Notification {
-  id: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'achievement' | 'order' | 'product' | 'system';
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  priority: 'low' | 'medium' | 'high';
-  actionRequired?: boolean;
-}
-
 const NotificationPage = () => {
   const [filter, setFilter] = useState<string>('all');
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'achievement',
-      title: 'Congratulations! 🎉',
-      message: 'You\'ve reached a 5-day login streak! Keep up the amazing work.',
-      timestamp: '2 hours ago',
-      read: false,
-      priority: 'medium'
-    },
-    {
-      id: '2',
-      type: 'order',
-      title: 'New Order Received',
-      message: 'Order #ORD-5678 has been placed. Customer: John Smith - $289.99',
-      timestamp: '3 hours ago',
-      read: false,
-      priority: 'high',
-      actionRequired: true
-    },
-    {
-      id: '3',
-      type: 'product',
-      title: 'Low Stock Alert',
-      message: 'Chanel No. 5 (100ml) is running low. Only 3 units remaining.',
-      timestamp: '4 hours ago',
-      read: false,
-      priority: 'high',
-      actionRequired: true
-    },
-    {
-      id: '4',
-      type: 'success',
-      title: 'Product Updated Successfully',
-      message: 'Dior Sauvage product information has been updated successfully.',
-      timestamp: '5 hours ago',
-      read: true,
-      priority: 'low'
-    },
-    {
-      id: '5',
-      type: 'system',
-      title: 'System Maintenance',
-      message: 'Scheduled maintenance will occur tonight from 2:00 AM - 4:00 AM EST.',
-      timestamp: '1 day ago',
-      read: false,
-      priority: 'medium'
-    },
-    {
-      id: '6',
-      type: 'info',
-      title: 'Weekly Report Available',
-      message: 'Your weekly performance report is ready for review.',
-      timestamp: '1 day ago',
-      read: true,
-      priority: 'low'
-    },
-    {
-      id: '7',
-      type: 'warning',
-      title: 'Payment Method Expiring',
-      message: 'Your payment method ending in 4532 will expire in 7 days.',
-      timestamp: '2 days ago',
-      read: false,
-      priority: 'medium',
-      actionRequired: true
-    },
-    {
-      id: '8',
-      type: 'error',
-      title: 'Failed to Sync Data',
-      message: 'Unable to sync inventory data. Please check your connection.',
-      timestamp: '2 days ago',
-      read: true,
-      priority: 'high'
-    }
-  ]);
-
+  const { notifications, setNotifications } = useAuthStore();
   const getNotificationIcon = (type: string) => {
     const iconSize = 20;
     switch (type) {
@@ -168,24 +82,21 @@ const NotificationPage = () => {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
+  const markAsRead = (id: number) => {
+    const updatedNotifications = notifications.map((notif: Notification) => 
+      notif.id === id ? { ...notif, read: true } : notif
     );
+    setNotifications(updatedNotifications);
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
+    const updatedNotifications = notifications.map(notif => ({ ...notif, read: true }));
+    setNotifications(updatedNotifications);
   };
-
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
+  const deleteNotification = (id: number) => {
+    const updatedNotifications = notifications.filter(notif => notif.id !== id);
+    setNotifications(updatedNotifications);
   };
-
   const filteredNotifications = notifications.filter(notif => {
     if (filter === 'all') return true;
     if (filter === 'unread') return !notif.read;
@@ -225,14 +136,6 @@ const NotificationPage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              {unreadCount > 0 && (
-                <button
-                  onClick={markAllAsRead}
-                  className="px-3 py-1 text-[0.7rem] md:text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg transition-colors"
-                >
-                  Mark all read
-                </button>
-              )}
               <div className="relative">
                 <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-bold">{unreadCount}</span>
@@ -270,13 +173,31 @@ const NotificationPage = () => {
                 <span className="text-sm font-medium text-gray-700">Today</span>
               </div>
               <p className="text-xl font-bold text-gray-900 mt-1">
-                {notifications.filter(n => n.timestamp.includes('hour')).length}
+                {
+                  notifications.filter(n => {
+                    const notifDate = new Date(n.timestamp);
+                    const today = new Date();
+
+                    return (
+                      notifDate.getFullYear() === today.getFullYear() &&
+                      notifDate.getMonth() === today.getMonth() &&
+                      notifDate.getDate() === today.getDate()
+                    );
+                  }).length
+                }
               </p>
             </div>
           </div>
         </div>
       </div>
-
+                {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="fixed right-5 z-50 bottom-5 px-3 py-1 text-[0.7rem] md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                >
+                  Mark all read
+                </button>
+              )}
       <div className="px-4 py-6 space-y-6">
         {/* Filters */}
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
