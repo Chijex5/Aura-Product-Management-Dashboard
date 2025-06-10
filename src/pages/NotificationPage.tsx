@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Notification } from '@/stores/authStore';
+import SelfService from '@/services/selfService';
+import toast from 'react-hot-toast';
 import { 
   Bell, 
   Package, 
@@ -21,10 +23,13 @@ import {
   Award,
   Calendar
 } from 'lucide-react';
+import { use } from 'framer-motion/client';
 
 const NotificationPage = () => {
   const [filter, setFilter] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(false)
   const { notifications, setNotifications } = useAuthStore();
+  const [loading, setLoading] = useState<{id: number | null, state: boolean}>({id: null, state: false});
   const getNotificationIcon = (type: string) => {
     const iconSize = 20;
     switch (type) {
@@ -82,20 +87,60 @@ const NotificationPage = () => {
     }
   };
 
-  const markAsRead = (id: number) => {
-    const updatedNotifications = notifications.map((notif: Notification) => 
-      notif.id === id ? { ...notif, read: true } : notif
-    );
-    setNotifications(updatedNotifications);
+  const markAsRead = async(id: number) => {
+    try{
+      setLoading({id, state: true});
+      const response = await SelfService.markNotificationAsRead(id);
+      if (response.success) {
+        const updatedNotifications = notifications.map((notif: Notification) => 
+          notif.id === id ? { ...notif, read: true } : notif
+        );
+        setNotifications(updatedNotifications);
+        toast.success(response.message);
+      } else {
+        toast.error(response.message)
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      
+    } finally{
+      setLoading({id: null, state: false});
+    }
   };
 
-  const markAllAsRead = () => {
-    const updatedNotifications = notifications.map(notif => ({ ...notif, read: true }));
-    setNotifications(updatedNotifications);
+  const markAllAsRead = async() => {
+    try{  
+      setIsLoading(true)
+      const response = await SelfService.markAllNotificationsAsRead();
+      if (response.success){
+        const updatedNotifications = notifications.map(notif => ({ ...notif, read: true }));
+        setNotifications(updatedNotifications);
+        toast.success(response.message);
+      } else{
+        toast.error(response.message);
+      }
+    } catch (err){
+      console.log("error marhing all as read", err)
+    } finally{
+      setIsLoading(false);
+    }
   };
-  const deleteNotification = (id: number) => {
-    const updatedNotifications = notifications.filter(notif => notif.id !== id);
-    setNotifications(updatedNotifications);
+  const deleteNotification = async (id: number) => {
+    try{ 
+      setLoading({id, state:true}) 
+      const response = await SelfService.deleteNotification(id);
+      if (response.success){
+        const updatedNotifications = notifications.filter(notif => notif.id !== id);
+        setNotifications(updatedNotifications);
+        toast.success(response.message);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (err) {
+      console.error("error deleting the notification:", err);
+    } finally{
+      setLoading({id:null, state:false}) 
+    }
   };
   const filteredNotifications = notifications.filter(notif => {
     if (filter === 'all') return true;
@@ -192,10 +237,11 @@ const NotificationPage = () => {
       </div>
                 {unreadCount > 0 && (
                 <button
-                  onClick={markAllAsRead}
-                  className="fixed right-5 z-50 bottom-5 px-3 py-1 text-[0.7rem] md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                disabled={isLoading}
+                onClick={markAllAsRead}
+                className="fixed right-5 z-50 bottom-5 px-3 py-1 text-[0.7rem] md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
                 >
-                  Mark all read
+                  {isLoading ? "Working" : "Mark all read"}
                 </button>
               )}
       <div className="px-4 py-6 space-y-6">
@@ -249,7 +295,7 @@ const NotificationPage = () => {
             filteredNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 overflow-hidden transition-all duration-200 hover:shadow-xl ${
+                className={`${loading.state && loading.id === notification.id ? 'bg-gray-200' : 'bg-white/90'} backdrop-blur-sm rounded-xl shadow-lg border border-white/20 overflow-hidden transition-all duration-200 hover:shadow-xl ${
                   !notification.read ? 'ring-2 ring-indigo-100' : ''
                 }`}
               >
@@ -314,24 +360,26 @@ const NotificationPage = () => {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center space-x-2 ml-4">
-                            {!notification.read && (
+                          {!loading.state && loading.id !== notification.id && (
+                            <div className="flex items-center space-x-2 ml-4">
+                              {!notification.read && (
+                                <button
+                                  onClick={() => markAsRead(notification.id)}
+                                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                                  title="Mark as read"
+                                >
+                                  <Eye size={16} className="text-gray-500" />
+                                </button>
+                              )}
                               <button
-                                onClick={() => markAsRead(notification.id)}
-                                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                                title="Mark as read"
+                                onClick={() => deleteNotification(notification.id)}
+                                className="p-1 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
+                                title="Delete notification"
                               >
-                                <Eye size={16} className="text-gray-500" />
+                                <Trash2 size={16} />
                               </button>
-                            )}
-                            <button
-                              onClick={() => deleteNotification(notification.id)}
-                              className="p-1 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
-                              title="Delete notification"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
