@@ -312,13 +312,19 @@ const AdminProfile: React.FC = () => {
     setIsLoading(true);
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response =await SelfService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      if (!response.success) {
+        toast.error(response.message || 'Failed to change password');
+        return;
+      }
+      if (response.message) {
+        toast.success(response.message);
+      }
       
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswordForm(false);
-      toast.success('Password changed successfully');
     } catch (error) {
-      toast.error('Failed to change password');
+      console.error('Failed to change password');
     } finally {
       setIsLoading(false);
     }
