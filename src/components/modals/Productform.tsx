@@ -97,6 +97,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <select name="size" value={formData.size} onChange={handleInputChange} className="w-full px-4 py-2 rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
                 <option value="25ml">25ml</option>
                 <option value="30ml">30ml</option>
+                <option value="35ml">35ml</option>
                 <option value="50ml">50ml</option>
                 <option value="80ml">80ml</option>
                 <option value="100ml">100ml</option>
