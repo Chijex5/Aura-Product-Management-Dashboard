@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';;
 import SelfService from '@/services/selfService';
 import { 
@@ -127,6 +127,18 @@ const AdminProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showPasswordForm, setShowPasswordForm] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const getUrlParameter = (name: string) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  };
+
+  useEffect(() => {
+    const urlTab = getUrlParameter('tab');
+    if (urlTab) {
+      setActiveTab(urlTab);
+    }
+  }, []);
   
   // Form states
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
@@ -149,7 +161,11 @@ const AdminProfile: React.FC = () => {
   const TabButton: React.FC<{ id: string; label: string; icon: React.ReactNode; activeTab: string; setActiveTab: (tab: string) => void }> = 
     ({ id, label, icon, activeTab, setActiveTab }) => (
     <button
-      onClick={() => setActiveTab(id)}
+      onClick={() => {
+        setActiveTab(id);
+        const newUrl = `${window.location.pathname}?tab=${encodeURIComponent(id)}`;
+        window.history.replaceState({}, '', newUrl);
+      }}
       className={`flex items-center justify-center md:justify-start space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full md:w-auto ${
         activeTab === id
           ? 'bg-blue-100 text-blue-700'

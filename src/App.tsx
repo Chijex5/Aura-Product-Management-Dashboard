@@ -8,6 +8,7 @@ import ResetPasswordPage from './pages/auth/ResetPasswordpage';
 import NotificationPage from './pages/NotificationPage';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
+import OrderAdminDashboard from './pages/OrderPage';
 import Admins from './pages/Admins';
 import Statistics from './pages/Statistics';
 import Resources from './pages/Resources';
@@ -80,6 +81,15 @@ export function App() {
               </ProtectedRoute>
             } />
             
+            {/* Order route */}
+            <Route path="/orders" element={
+              <ProtectedRoute>
+                <Layout>
+                  <OrderAdminDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
             {/* Statistics route */}
             <Route path="/statistics" element={
               <ProtectedRoute>

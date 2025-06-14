@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Menu, X, LogOut, Home, LayoutDashboard, ShoppingBag, Users, BarChart2, Database } from 'lucide-react';
+import { Menu, X, LogOut, ShoppingCart, LayoutDashboard, ShoppingBag, Users, BarChart2, Database } from 'lucide-react';
 import { useMobileMenu } from '../../contexts/MobileMenuContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Users as UsersIcon } from 'lucide-react';
@@ -34,9 +34,9 @@ const Sidebar = () => {
     icon: <Users size={20} />,
     label: 'Admins'
   }, {
-    path: '/statistics',
-    icon: <BarChart2 size={20} />,
-    label: 'Statistics'
+    path: '/orders',
+    icon: <ShoppingCart size={20} />,
+    label: 'Order'
   }, {
     path: '/resources',
     icon: <Database size={20} />,
@@ -94,9 +94,9 @@ const Sidebar = () => {
       {/* Mobile Menu Button - to be placed in your header component */}
 
       {/* Mobile Sidebar */}
-      <div className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity duration-300 ease-in-out z-20 md:hidden ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={closeMenu}></div>
+      <div className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity duration-300 ease-in-out z-40 md:hidden ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={closeMenu}></div>
 
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out z-30 md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out z-50 md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 h-16 border-b border-gray-800">
           <div className="flex items-center">
             <div className="h-8 w-8 rounded">

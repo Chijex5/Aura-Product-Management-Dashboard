@@ -178,7 +178,7 @@ const Users = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20 md:pb-6">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-40">
+      <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-30">
         <div className="px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
@@ -380,7 +380,7 @@ const Users = () => {
               return (
                 <div
                   key={userItem.user_id}
-                  className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 transition-all duration-200 hover:shadow-xl relative ${activeDropdown === userItem.user_id ? 'z-30' : 'z-10'}`}
+                  className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 transition-all duration-200 hover:shadow-xl relative ${activeDropdown === userItem.user_id ? 'z-20' : 'z-10'}`}
                 >
                   <div className="flex">
                     {/* Status Indicator */}
@@ -456,7 +456,7 @@ const Users = () => {
                   {activeDropdown === userItem.user_id && (
                     <div 
                       ref={setDropdownRef(userItem.user_id)}
-                      className="absolute right-4 top-16 w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50 overflow-hidden"
+                      className="absolute right-4 top-16 w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-30 overflow-hidden"
                     >
                       <button
                         onClick={() => {
