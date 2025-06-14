@@ -36,7 +36,7 @@ const Sidebar = () => {
   }, {
     path: '/orders',
     icon: <ShoppingCart size={20} />,
-    label: 'Order'
+    label: 'Orders'
   }, {
     path: '/resources',
     icon: <Database size={20} />,

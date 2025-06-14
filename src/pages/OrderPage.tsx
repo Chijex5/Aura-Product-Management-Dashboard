@@ -1,15 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axiosInstance from '@/utils/axios';
-import { Search, Filter, Package, Clock, CheckCircle, XCircle, Truck, Edit3, Save, X, Phone, Mail, MapPin, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, Filter, Package, Clock, XCircle, Edit3, Save, X, Phone, Mail, MapPin, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+
+export interface CartItem {
+  id: number;
+  product_name: string;
+  price_per_unit: number;
+  image: string;
+  quantity: number;
+}
+
+export interface Order {
+  order_id: string;
+  user_id: number;
+  status: string;
+  tracking_number?: string;
+  cart_items: CartItem[];
+  total_amount: number;
+  shipping_fee?: number;
+  shipping_address: string;
+  city: string;
+  state: string;
+  full_name: string;
+  email: string;
+  item_count?: number;
+  phone_number: string;
+  created_at: string;
+  estimated_delivery?: string;
+  delivered_at?: string;
+  updated_at?: string;
+  cancelled_at?: string;
+  notes?:string;
+  expected_delivery_date?: string;
+  payment_status?: string;
+  payment_method?: string;
+  discount_code?: string;
+}
 
 const OrderAdminDashboard = () => {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [editingOrder, setEditingOrder] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<string|null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<string|null>(null);
   const [editForm, setEditForm] = useState({});
   const [pagination, setPagination] = useState({
     current_page: 1,
@@ -54,8 +91,6 @@ const OrderAdminDashboard = () => {
       if (status !== 'all') params.append('status', status);
 
       const response = await axiosInstance.get(`/admin/orders?${params}`);
-      console.log(response)
-
       const data = await response.data;
 
       // Transform the data to match frontend expectations
@@ -72,8 +107,7 @@ const OrderAdminDashboard = () => {
       setPagination(data.pagination);
       
     } catch (err) {
-      console.error('Error fetching orders:', err);
-      
+      setError('Failed to fetch orders');
     } finally {
       setLoading(false);
     }
@@ -102,15 +136,12 @@ const OrderAdminDashboard = () => {
     return matchesSearch;
   });
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
+      setUpdatingStatus(orderId);
       const response = await axiosInstance.patch(`/admin/orders/${orderId}/status`, {
         status: newStatus
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update status');
-      }
 
       // Update local state
       setOrders(orders.map(order => {
@@ -135,28 +166,26 @@ const OrderAdminDashboard = () => {
       }));
       
     } catch (err) {
-      console.error('Error updating status:', err);
       setError('Failed to update order status');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
-  const handleEdit = (order) => {
+  const handleEdit = (order: Order) => {
     setEditingOrder(order.order_id);
     setEditForm({
-      tracking_number: order.tracking_number || '',
+      tracking_number: order.order_id || '',
       estimated_delivery: order.estimated_delivery || '',
       payment_status: order.payment_status || 'pending',
       notes: order.notes || ''
     });
   };
 
-  const handleSaveEdit = async (orderId) => {
+  const handleSaveEdit = async (orderId: string) => {
     try {
-      const response = await axiosInstance.patch(`/admin/orders/${orderId}`, { editForm });
-
-      if (!response.success) {
-        throw new Error('Failed to update order');
-      }
+      setIsSaving(true);
+      await axiosInstance.patch(`/admin/orders/${orderId}`, { editForm });
 
       // Update local state
       setOrders(orders.map(order => {
@@ -174,12 +203,13 @@ const OrderAdminDashboard = () => {
       setEditForm({});
       
     } catch (err) {
-      console.error('Error updating order:', err);
       setError('Failed to update order details');
+    } finally{
+      setIsSaving(false);
     }
   };
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     fetchOrders(newPage, searchTerm, statusFilter, orderBy, orderDirection);
   };
 
@@ -187,17 +217,17 @@ const OrderAdminDashboard = () => {
     fetchOrders(pagination.current_page, searchTerm, statusFilter, orderBy, orderDirection);
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: string) => {
     const statusConfig = statusOptions.find(s => s.value === status);
     return statusConfig ? statusConfig : { label: status, color: 'bg-gray-100 text-gray-800' };
   };
 
-  const getPaymentStatusBadge = (status) => {
+  const getPaymentStatusBadge = (status: string) => {
     const statusConfig = paymentStatusOptions.find(s => s.value === status);
     return statusConfig ? statusConfig : { label: status || 'Unknown', color: 'bg-gray-100 text-gray-800' };
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -208,7 +238,7 @@ const OrderAdminDashboard = () => {
     });
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency: 'NGN'
@@ -251,8 +281,8 @@ const OrderAdminDashboard = () => {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Order Management</h1>
-              <p className="text-slate-600 text-sm">Manage orders, track status, and update details</p>
+              <h1 className="text-sm md:text-2xl font-bold text-slate-900">Order Management</h1>
+              <p className="text-slate-600 hidden md:block md:text-sm">Manage orders, track status, and update details</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
@@ -263,7 +293,7 @@ const OrderAdminDashboard = () => {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
               </button>
-              <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+              <div className="bg-blue-50 text-blue-700 text-[0.7125rem] md:text-sm px-3 py-1 rounded-full text-sm font-medium">
                 {pagination.total_orders} Orders
               </div>
             </div>
@@ -348,8 +378,8 @@ const OrderAdminDashboard = () => {
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 mb-1">Payment</p>
-                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusBadge(order.payment_status).color}`}>
-                    {getPaymentStatusBadge(order.payment_status).label}
+                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusBadge(order.payment_status || 'pending').color}`}>
+                    {getPaymentStatusBadge(order.payment_status || 'pending').label}
                   </span>
                 </div>
                 <div>
@@ -370,15 +400,34 @@ const OrderAdminDashboard = () => {
                 <div className="flex flex-wrap gap-2">
                   <div className="flex items-center space-x-2">
                     <label className="text-sm font-medium text-slate-700">Status:</label>
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
-                      className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {statusOptions.map(status => (
-                        <option key={status.value} value={status.value}>{status.label}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      {updatingStatus === order.order_id && (
+                        <div className="absolute inset-0 bg-white bg-opacity-75 rounded-lg flex items-center justify-center z-10">
+                          <div className="flex items-center space-x-2 text-sm text-slate-600">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                            <span>Updating status...</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
+                        disabled={updatingStatus === order.order_id}
+                        className={`
+                          px-3 py-1.5 border border-slate-200 rounded-lg text-sm w-full
+                          focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                          transition-all duration-200
+                          ${updatingStatus === order.order_id ? 'pointer-events-none' : ''}
+                        `}
+                      >
+                        {statusOptions.map(status => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <button
                     onClick={() => handleEdit(order)}
@@ -397,10 +446,12 @@ const OrderAdminDashboard = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleSaveEdit(order.order_id)}
-                          className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                          disabled={isSaving}
+                          className={`flex items-center space-x-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
                           <Save className="w-4 h-4" />
-                          <span>Save</span>
+                          <span>{isSaving ? 'Saving' : 'Save'}</span>
                         </button>
                         <button
                           onClick={() => setEditingOrder(null)}
@@ -416,6 +467,7 @@ const OrderAdminDashboard = () => {
                         <label className="block text-sm font-medium text-slate-700 mb-1">Tracking Number</label>
                         <input
                           type="text"
+                          disabled
                           value={editForm.tracking_number}
                           onChange={(e) => setEditForm({...editForm, tracking_number: e.target.value})}
                           className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
