@@ -1,7 +1,10 @@
 import { Activity, Clock, Package, User, Trash2, Edit, Plus } from 'lucide-react';
 import { ActivityLog } from '@/stores/authStore';
+import { useNavigate } from 'react-router-dom';
 
 const RecentActivity = ({ activityLogs = [] }: { activityLogs: ActivityLog[] }) => {
+  const navigate = useNavigate();
+
   // Filter out LOGIN actions and limit to recent items
   const filteredActivity = activityLogs
     .filter(log => log.action !== 'LOGIN')
@@ -125,7 +128,10 @@ const RecentActivity = ({ activityLogs = [] }: { activityLogs: ActivityLog[] }) 
       </div>
       {activityLogs.filter(log => log.action !== 'LOGIN').length > 8 && (
         <div className="p-3 border-t border-gray-100 text-center">
-          <button className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+          <button 
+            className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+            onClick={() => navigate('/account/profile?tab=activity')}
+          >
             View all activity
           </button>
         </div>
