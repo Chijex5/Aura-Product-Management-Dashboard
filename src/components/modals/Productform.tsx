@@ -100,7 +100,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <option value="35ml">35ml</option>
                 <option value="50ml">50ml</option>
                 <option value="80ml">80ml</option>
+                <option value="90ml">90ml</option>
                 <option value="100ml">100ml</option>
+                <option value="110ml">110ml</option>
                 <option value="200ml">200ml</option>
               </select>
             </div>
