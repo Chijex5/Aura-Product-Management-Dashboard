@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '@/utils/axios';
-import { Search, Filter, Package, Clock, XCircle, Edit3, Save, X, Phone, Mail, MapPin, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, Filter, Package, Clock, XCircle, Edit3, Save, X, Phone, Mail, MapPin, ChevronLeft, ChevronRight, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 
 export interface CartItem {
   id: number;
@@ -247,10 +247,10 @@ const OrderAdminDashboard = () => {
 
   if (loading && orders.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading orders...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+          <p className="text-slate-600 text-sm">Loading orders...</p>
         </div>
       </div>
     );
@@ -258,14 +258,14 @@ const OrderAdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <div className="text-center">
-          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Orders</h3>
-          <p className="text-slate-600 mb-4">{error}</p>
+          <XCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
+          <h3 className="text-base font-semibold text-slate-900 mb-2">Error Loading Orders</h3>
+          <p className="text-slate-600 mb-4 text-sm">{error}</p>
           <button
             onClick={handleRefresh}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
           >
             Try Again
           </button>
@@ -276,46 +276,46 @@ const OrderAdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
+      {/* Mobile-Optimized Header */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-3 md:p-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-sm md:text-2xl font-bold text-slate-900">Order Management</h1>
-              <p className="text-slate-600 hidden md:block md:text-sm">Manage orders, track status, and update details</p>
+              <h1 className="text-lg md:text-2xl font-bold text-slate-900">Orders</h1>
+              <p className="text-xs md:text-sm text-slate-600 hidden sm:block">Manage and track orders</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="flex items-center space-x-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors disabled:opacity-50"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
               </button>
-              <div className="bg-blue-50 text-blue-700 text-[0.7125rem] md:text-sm px-3 py-1 rounded-full text-sm font-medium">
-                {pagination.total_orders} Orders
+              <div className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">
+                {pagination.total_orders}
               </div>
             </div>
           </div>
 
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+          {/* Mobile-Optimized Search and Filter */}
+          <div className="space-y-2">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search orders, customers..."
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Search orders..."
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <div className="relative flex-1">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-3 h-3" />
                 <select
-                  className="pl-10 pr-8 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white min-w-[140px]"
+                  className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-xs"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -326,7 +326,7 @@ const OrderAdminDashboard = () => {
                 </select>
               </div>
               <select
-                className="px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white min-w-[120px]"
+                className="px-2 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-xs"
                 value={`${orderBy}-${orderDirection}`}
                 onChange={(e) => {
                   const [field, direction] = e.target.value.split('-');
@@ -334,191 +334,172 @@ const OrderAdminDashboard = () => {
                   setOrderDirection(direction);
                 }}
               >
-                <option value="created_at-DESC">Newest First</option>
-                <option value="created_at-ASC">Oldest First</option>
-                <option value="total_amount-DESC">Highest Amount</option>
-                <option value="total_amount-ASC">Lowest Amount</option>
-                <option value="status-ASC">Status A-Z</option>
+                <option value="created_at-DESC">Newest</option>
+                <option value="created_at-ASC">Oldest</option>
+                <option value="total_amount-DESC">High ₦</option>
+                <option value="total_amount-ASC">Low ₦</option>
               </select>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Orders List */}
-      <div className="p-4 space-y-4">
+      {/* Mobile-Optimized Orders List */}
+      <div className="p-3 md:p-4 space-y-3">
         {filteredOrders.map((order) => (
-          <div key={order.order_id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            {/* Order Header */}
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Package className="w-5 h-5 text-blue-600" />
+          <div key={order.order_id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            {/* Compact Order Header */}
+            <div className="p-3 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center space-x-2 min-w-0 flex-1">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Package className="w-4 h-4 text-blue-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">{order.order_id}</h3>
-                    <p className="text-sm text-slate-600">{order.full_name}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-slate-900 text-sm truncate">{order.order_id}</h3>
+                    <p className="text-xs text-slate-600 truncate">{order.full_name}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedOrder(selectedOrder === order.order_id ? null : order.order_id)}
-                  className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                  className="text-blue-600 hover:text-blue-700 text-xs font-medium flex items-center space-x-1 flex-shrink-0"
                 >
-                  {selectedOrder === order.order_id ? 'Collapse' : 'Details'}
+                  <span>{selectedOrder === order.order_id ? 'Less' : 'More'}</span>
+                  {selectedOrder === order.order_id ? 
+                    <ChevronUp className="w-3 h-3" /> : 
+                    <ChevronDown className="w-3 h-3" />
+                  }
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Mobile-Optimized Status Grid */}
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <p className="text-xs text-slate-500 mb-1">Status</p>
-                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(order.status).color}`}>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(order.status).color}`}>
                     {getStatusBadge(order.status).label}
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Payment</p>
-                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusBadge(order.payment_status || 'pending').color}`}>
-                    {getPaymentStatusBadge(order.payment_status || 'pending').label}
-                  </span>
-                </div>
-                <div>
                   <p className="text-xs text-slate-500 mb-1">Total</p>
-                  <p className="font-semibold text-slate-900">{formatCurrency(order.total_amount)}</p>
+                  <p className="font-semibold text-slate-900 text-sm">{formatCurrency(order.total_amount)}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Created</p>
-                  <p className="text-sm text-slate-700">{formatDate(order.created_at).split(',')[0]}</p>
-                </div>
+              </div>
+              
+              <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+                <span>{formatDate(order.created_at).split(',')[0]}</span>
+                <span className={`px-2 py-0.5 rounded-full ${getPaymentStatusBadge(order.payment_status || 'pending').color}`}>
+                  {getPaymentStatusBadge(order.payment_status || 'pending').label}
+                </span>
               </div>
             </div>
 
-            {/* Expanded Details */}
+            {/* Mobile-Optimized Expanded Details */}
             {selectedOrder === order.order_id && (
-              <div className="p-4 space-y-6">
-                {/* Quick Actions */}
-                <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center space-x-2">
-                    <label className="text-sm font-medium text-slate-700">Status:</label>
-                    <div className="relative">
-                      {updatingStatus === order.order_id && (
-                        <div className="absolute inset-0 bg-white bg-opacity-75 rounded-lg flex items-center justify-center z-10">
-                          <div className="flex items-center space-x-2 text-sm text-slate-600">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
-                            <span>Updating status...</span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
-                        disabled={updatingStatus === order.order_id}
-                        className={`
-                          px-3 py-1.5 border border-slate-200 rounded-lg text-sm w-full
-                          focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                          transition-all duration-200
-                          ${updatingStatus === order.order_id ? 'pointer-events-none' : ''}
-                        `}
-                      >
-                        {statusOptions.map(status => (
-                          <option key={status.value} value={status.value}>
-                            {status.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="p-3 space-y-4">
+                {/* Quick Status Update */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-slate-700">Update Status:</label>
+                    <button
+                      onClick={() => handleEdit(order)}
+                      className="flex items-center space-x-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-medium text-slate-700 transition-colors"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleEdit(order)}
-                    className="flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                    <span>Edit</span>
-                  </button>
+                  <div className="relative">
+                    {updatingStatus === order.order_id && (
+                      <div className="absolute inset-0 bg-white bg-opacity-75 rounded flex items-center justify-center z-10">
+                        <div className="flex items-center space-x-2 text-xs text-slate-600">
+                          <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-500 border-t-transparent"></div>
+                          <span>Updating...</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <select
+                      value={order.status}
+                      onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
+                      disabled={updatingStatus === order.order_id}
+                      className="w-full px-3 py-2 border border-slate-200 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      {statusOptions.map(status => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                {/* Edit Form */}
+                {/* Mobile-Optimized Edit Form */}
                 {editingOrder === order.order_id && (
-                  <div className="bg-slate-50 rounded-xl p-4 space-y-4">
+                  <div className="bg-slate-50 rounded-lg p-3 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-slate-900">Edit Order Details</h4>
-                      <div className="flex space-x-2">
+                      <h4 className="font-medium text-slate-900 text-sm">Edit Details</h4>
+                      <div className="flex space-x-1">
                         <button
                           onClick={() => handleSaveEdit(order.order_id)}
                           disabled={isSaving}
-                          className={`flex items-center space-x-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
+                          className={`flex items-center space-x-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-medium transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          <Save className="w-4 h-4" />
+                          <Save className="w-3 h-3" />
                           <span>{isSaving ? 'Saving' : 'Save'}</span>
                         </button>
                         <button
                           onClick={() => setEditingOrder(null)}
-                          className="flex items-center space-x-1 px-3 py-1.5 bg-slate-400 hover:bg-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
+                          className="flex items-center space-x-1 px-2 py-1 bg-slate-400 hover:bg-slate-500 text-white rounded text-xs font-medium transition-colors"
                         >
-                          <X className="w-4 h-4" />
-                          <span>Cancel</span>
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Tracking Number</label>
-                        <input
-                          type="text"
-                          disabled
-                          value={editForm.tracking_number}
-                          onChange={(e) => setEditForm({...editForm, tracking_number: e.target.value})}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Enter tracking number"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Payment Status</label>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Payment Status</label>
                         <select
                           value={editForm.payment_status}
                           onChange={(e) => setEditForm({...editForm, payment_status: e.target.value})}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           {paymentStatusOptions.map(status => (
                             <option key={status.value} value={status.value}>{status.label}</option>
                           ))}
                         </select>
                       </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Estimated Delivery</label>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Estimated Delivery</label>
                         <input
                           type="date"
                           value={editForm.estimated_delivery ? new Date(editForm.estimated_delivery).toISOString().slice(0, 10) : ''}
                           onChange={(e) => setEditForm({...editForm, estimated_delivery: e.target.value})}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Customer Info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-slate-900 flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Mail className="w-3 h-3 text-blue-600" />
-                      </div>
-                      <span>Customer Details</span>
+                {/* Mobile-Optimized Customer & Timeline */}
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-slate-900 text-sm mb-2 flex items-center space-x-1">
+                      <Mail className="w-3 h-3 text-blue-600" />
+                      <span>Customer</span>
                     </h4>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-600">{order.email}</span>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                        <span className="text-slate-600 truncate">{order.email}</span>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <Phone className="w-4 h-4 text-slate-400" />
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-3 h-3 text-slate-400 flex-shrink-0" />
                         <span className="text-slate-600">{order.phone_number || 'N/A'}</span>
                       </div>
-                      <div className="flex items-start space-x-3">
-                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5" />
+                      <div className="flex items-start space-x-2">
+                        <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0 mt-0.5" />
                         <div className="text-slate-600">
                           <p>{order.shipping_address}</p>
                           <p>{order.city}, {order.state}</p>
@@ -527,82 +508,66 @@ const OrderAdminDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-slate-900 flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Clock className="w-3 h-3 text-green-600" />
-                      </div>
-                      <span>Order Timeline</span>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 text-sm mb-2 flex items-center space-x-1">
+                      <Clock className="w-3 h-3 text-green-600" />
+                      <span>Timeline</span>
                     </h4>
-                    <div className="space-y-3 text-sm">
-                      <div>
-                        <p className="text-slate-500">Created</p>
-                        <p className="font-medium text-slate-900">{formatDate(order.created_at)}</p>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Created</span>
+                        <span className="font-medium text-slate-900">{formatDate(order.created_at)}</span>
                       </div>
                       {order.expected_delivery_date && (
-                        <div>
-                          <p className="text-slate-500">Est. Delivery</p>
-                          <p className="font-medium text-slate-900">{formatDate(order.expected_delivery_date)}</p>
-                        </div>
-                      )}
-                      {order.delivered_at && (
-                        <div>
-                          <p className="text-slate-500">Delivered</p>
-                          <p className="font-medium text-green-600">{formatDate(order.delivered_at)}</p>
-                        </div>
-                      )}
-                      {order.cancelled_at && (
-                        <div>
-                          <p className="text-slate-500">Cancelled</p>
-                          <p className="font-medium text-red-600">{formatDate(order.cancelled_at)}</p>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Est. Delivery</span>
+                          <span className="font-medium text-slate-900">{formatDate(order.expected_delivery_date)}</span>
                         </div>
                       )}
                       {order.tracking_number && (
-                        <div>
-                          <p className="text-slate-500">Tracking</p>
-                          <p className="font-medium text-blue-600">{order.tracking_number}</p>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Tracking</span>
+                          <span className="font-medium text-blue-600">{order.tracking_number}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Order Items */}
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-slate-900 flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Package className="w-3 h-3 text-purple-600" />
-                    </div>
-                    <span>Order Items ({order.item_count || order.cart_items?.length || 0})</span>
+                {/* Mobile-Optimized Order Items */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-slate-900 text-sm flex items-center space-x-1">
+                    <Package className="w-3 h-3 text-purple-600" />
+                    <span>Items ({order.item_count || order.cart_items?.length || 0})</span>
                   </h4>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {order.cart_items?.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">{item.product_name || item.name}</p>
-                          <p className="text-sm text-slate-600">Qty: {item.quantity}</p>
+                      <div key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-900 text-xs truncate">{item.product_name || item.name}</p>
+                          <p className="text-xs text-slate-600">Qty: {item.quantity}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-slate-900">{formatCurrency(item.price_per_unit || item.price)}</p>
-                          <p className="text-sm text-slate-600">{formatCurrency((item.price_per_unit || item.price) * item.quantity)}</p>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-semibold text-slate-900 text-xs">{formatCurrency(item.price_per_unit || item.price)}</p>
+                          <p className="text-xs text-slate-600">{formatCurrency((item.price_per_unit || item.price) * item.quantity)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Order Summary */}
-                  <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                    <div className="flex justify-between text-sm">
+                  {/* Mobile-Optimized Order Summary */}
+                  <div className="bg-slate-50 rounded-lg p-2 space-y-1">
+                    <div className="flex justify-between text-xs">
                       <span className="text-slate-600">Subtotal</span>
                       <span className="font-medium">{formatCurrency(order.total_amount - (order.shipping_fee || 0))}</span>
                     </div>
                     {order.shipping_fee && (
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs">
                         <span className="text-slate-600">Shipping</span>
                         <span className="font-medium">{formatCurrency(order.shipping_fee)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-base font-semibold pt-2 border-t border-slate-200">
+                    <div className="flex justify-between text-sm font-semibold pt-1 border-t border-slate-200">
                       <span>Total</span>
                       <span>{formatCurrency(order.total_amount)}</span>
                     </div>
@@ -613,41 +578,43 @@ const OrderAdminDashboard = () => {
           </div>
         ))}
 
-        {/* Pagination */}
+        {/* Mobile-Optimized Pagination */}
         {pagination.total_pages > 1 && (
-          <div className="flex items-center justify-between bg-white rounded-2xl p-4 border border-slate-200">
-            <div className="text-sm text-slate-600">
-              Showing {((pagination.current_page - 1) * pagination.per_page) + 1} to {Math.min(pagination.current_page * pagination.per_page, pagination.total_orders)} of {pagination.total_orders} orders
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handlePageChange(pagination.current_page - 1)}
-                disabled={!pagination.has_prev || loading}
-                className="flex items-center space-x-1 px-3 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Previous</span>
-              </button>
-              <span className="px-3 py-2 text-sm font-medium text-slate-700">
-                Page {pagination.current_page} of {pagination.total_pages}
-              </span>
-              <button
-                onClick={() => handlePageChange(pagination.current_page + 1)}
-                disabled={!pagination.has_next || loading}
-                className="flex items-center space-x-1 px-3 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>Next</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+          <div className="bg-white rounded-xl p-3 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-slate-600">
+                {((pagination.current_page - 1) * pagination.per_page) + 1}-{Math.min(pagination.current_page * pagination.per_page, pagination.total_orders)} of {pagination.total_orders}
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(pagination.current_page - 1)}
+                  disabled={!pagination.has_prev || loading}
+                  className="flex items-center space-x-1 px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-3 h-3" />
+                  <span className="hidden sm:block">Prev</span>
+                </button>
+                <span className="px-2 py-1 text-xs font-medium text-slate-700">
+                  {pagination.current_page}/{pagination.total_pages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(pagination.current_page + 1)}
+                  disabled={!pagination.has_next || loading}
+                  className="flex items-center space-x-1 px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="hidden sm:block">Next</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {filteredOrders.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Package className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No orders found</h3>
-            <p className="text-slate-600">Try adjusting your search or filter criteria</p>
+          <div className="text-center py-8">
+            <Package className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-slate-900 mb-2">No orders found</h3>
+            <p className="text-slate-600 text-sm">Try adjusting your search or filter</p>
           </div>
         )}
       </div>
