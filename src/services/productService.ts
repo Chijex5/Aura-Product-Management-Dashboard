@@ -1,5 +1,6 @@
 import axiosInstance, { uploadFile } from '@/utils/axios';
 import { useStore } from '@/stores/productStore';
+import { normalizePermissions } from './permissionUtils';
 import canI from '@/function/CanI';
 
 export interface ProductData {
@@ -49,8 +50,9 @@ class ProductCache {
   private isFetching = false;
 
   private generateCacheKey(permissions: string[]): string {
-    return `products_${permissions.sort().join('_')}`;
+    return `products_${normalizePermissions(permissions).sort().join('_')}`;
   }
+
 
   private isExpired(entry: CacheEntry): boolean {
     return Date.now() - entry.timestamp > CACHE_CONFIG.TTL;
@@ -248,7 +250,7 @@ export const productService = {
       // Invalidate cache after creating new product
       productCache.invalidate();
       
-      await productService.fetchProducts(permissions, true); // Force refresh
+      await productService.fetchProducts(normalizePermissions(permissions), true); // Force refresh
       
       return {
         success: true,
@@ -423,7 +425,7 @@ export const productService = {
   },
 
   refreshProducts: async (permissions: string[]) => {
-    return await productService.fetchProducts(permissions, true);
+    return await productService.fetchProducts(normalizePermissions(permissions), true);
   }
 };
 

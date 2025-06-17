@@ -1,5 +1,6 @@
 import axiosInstance from '../utils/axios';
 import { useUserStore } from '../stores/userStore';
+import { normalizePermissions } from './permissionUtils';
 import canI from '../function/CanI';
 
 export interface UserData {
@@ -33,7 +34,7 @@ class UserCache {
   private isFetching = false;
 
   private generateCacheKey(permissions: string[]): string {
-    return `users_${permissions.sort().join('_')}`;
+    return `users_${normalizePermissions(permissions).sort().join('_')}`;
   }
 
   private isExpired(entry: CacheEntry): boolean {
